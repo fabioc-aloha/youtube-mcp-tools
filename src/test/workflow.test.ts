@@ -10,6 +10,7 @@ import {
     type DirectCollateralProvider,
     type ResearchBrief,
     type VideoCandidate,
+    parseEnvironmentFile,
 } from '../index.js';
 
 const brief: ResearchBrief = {
@@ -118,4 +119,12 @@ test('renders an accessible standalone resource page without injecting content',
     assert.match(html, /var\(--cp-bg\)/);
     assert.match(html, /&lt;Unsafe title&gt;/);
     assert.doesNotMatch(html, /<h1><Unsafe title><\/h1>/);
+});
+
+test('parses local environment values without accepting malformed entries', () => {
+    assert.deepEqual(parseEnvironmentFile('# comment\nYOUTUBE_API_KEY="test-key"\nexport MODE=research\n'), [
+        ['YOUTUBE_API_KEY', 'test-key'],
+        ['MODE', 'research'],
+    ]);
+    assert.throws(() => parseEnvironmentFile('not a setting'), /Invalid .env entry/);
 });

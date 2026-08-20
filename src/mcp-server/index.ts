@@ -2,6 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 
+import { loadLocalEnvironment } from '../config/local-env.js';
 import {
     buildHostGenerationPrompt,
     createDirectProviderFromEnvironment,
@@ -17,6 +18,7 @@ import {
 
 const SERVER_NAME = 'youtube-mcp-tools';
 const SERVER_VERSION = '0.1.0';
+const environmentFile = loadLocalEnvironment(process.cwd());
 const apiKey = process.env.YOUTUBE_API_KEY ?? '';
 const core = new YouTubeCore(apiKey, log);
 
@@ -331,7 +333,7 @@ function log(message: string): void {
 async function main(): Promise<void> {
     const server = createServer();
     await server.connect(new StdioServerTransport());
-    log(`${SERVER_NAME} ${SERVER_VERSION} connected on stdio${apiKey ? '' : ' (transcript and collateral-prompt tools available without an API key)'}.`);
+    log(`${SERVER_NAME} ${SERVER_VERSION} connected on stdio${apiKey ? '' : ' (transcript and collateral-prompt tools available without an API key)'}${environmentFile ? `; loaded ${environmentFile}` : ''}.`);
 }
 
 main().catch((error) => {

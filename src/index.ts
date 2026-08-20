@@ -1,6 +1,7 @@
 export * from './collateral/generate.js';
 export * from './collateral/openai-compatible.js';
 export * from './collateral/types.js';
+export * from './config/local-env.js';
 export * from './html/resource-page.js';
 export * from './profiles/defensible-decision.js';
 export * from './research/select.js';

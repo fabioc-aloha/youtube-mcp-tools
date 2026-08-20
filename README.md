@@ -75,6 +75,13 @@ configuration. After the `2.0.0` npm release, use `npx -y youtube-mcp-tools`
 instead of the local `node` command. Do not commit API keys; use a host input
 variable or environment file.
 
+For local development, copy `.env.example` to `.env` (a blank `.env` is already
+created in this repository) and set `YOUTUBE_API_KEY`. Create a restricted key
+in [Google Cloud Console](https://console.cloud.google.com/apis/credentials):
+enable **YouTube Data API v3**, then create an API key restricted to that API.
+The MCP server loads `.env` from its working directory only when an explicit
+environment variable is not already set.
+
 For Claude Code, add the local build with:
 
 ```bash
