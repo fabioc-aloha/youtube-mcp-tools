@@ -1,0 +1,27 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="100%" style="stop-color:#0f3460"/>
+    </linearGradient>
+    <linearGradient id="redGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff0000"/>
+      <stop offset="100%" style="stop-color:#cc0000"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="128" height="128" rx="24" fill="url(#bgGrad)"/>
+
+  <!-- YouTube Play Button -->
+  <rect x="24" y="34" width="80" height="56" rx="12" fill="url(#redGrad)"/>
+  <polygon points="52,46 52,76 76,61" fill="white"/>
+
+  <!-- VS Code accent -->
+  <rect x="88" y="78" width="24" height="24" rx="6" fill="#007acc"/>
+  <path d="M100,84 L94,88 L94,94 L100,98 L106,94 L106,88 Z" fill="white" opacity="0.9"/>
+
+  <!-- Sparkle -->
+  <circle cx="100" cy="30" r="4" fill="#ffd700"/>
+  <circle cx="28" cy="100" r="3" fill="#007acc"/>
+</svg>
