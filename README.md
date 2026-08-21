@@ -35,6 +35,11 @@ writer to paraphrase rather than reproduce transcript language.
 decision-ready Power BI dashboard guide for *The Defensible Decision*. It will produce
 a curated video page and a companion study guide for the book's `/resources/` section.
 
+The reader-facing guide is published at
+[Power BI Video Guide: From First Report to Defensible Decision](https://www.thedefensibledecision.com/resources/power-bi-learning-path/).
+It pairs selected Power BI tutorials with the book's question-first sequence for
+building and reviewing a report.
+
 ## VS Code extension
 
 The maintained Marketplace extension source is in
