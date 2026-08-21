@@ -1,0 +1,79 @@
+name: Publish release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version tag to publish without the leading v
+        required: true
+        type: string
+
+jobs:
+  publish:
+    name: Publish npm, MCP Registry, and VS Code companion
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      RELEASE_VERSION: ${{ inputs.version }}
+
+    steps:
+      - name: Check out the immutable release tag
+        uses: actions/checkout@v5
+        with:
+          ref: v${{ inputs.version }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+
+      - name: Verify release metadata
+        shell: bash
+        run: |
+          test "$(node -p "require('./package.json').version")" = "$RELEASE_VERSION"
+          test "$(node -p "require('./server.json').version")" = "$RELEASE_VERSION"
+          test "$(node -p "require('./server.json').packages[0].version")" = "$RELEASE_VERSION"
+
+      - name: Install and test the MCP server
+        run: npm ci && npm test
+
+      - name: Publish npm package with token
+        if: ${{ secrets.NPM_TOKEN != '' }}
+        run: npm publish --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish npm package with trusted publishing
+        if: ${{ secrets.NPM_TOKEN == '' }}
+        run: npm publish --provenance
+
+      - name: Install MCP Registry publisher
+        shell: bash
+        run: |
+          curl --fail --location --silent --show-error \
+            https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz \
+            | tar xz mcp-publisher
+          chmod +x mcp-publisher
+
+      - name: Authenticate to MCP Registry with GitHub OIDC
+        run: ./mcp-publisher login github-oidc
+
+      - name: Publish MCP Registry manifest
+        run: ./mcp-publisher publish
+
+      - name: Install extension dependencies
+        run: npm ci
+        working-directory: apps/vscode-extension
+
+      - name: Test VS Code companion
+        run: npm test
+        working-directory: apps/vscode-extension
+
+      - name: Publish VS Code companion
+        run: npx --yes @vscode/vsce@3.9.2 publish --no-dependencies
+        working-directory: apps/vscode-extension
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}

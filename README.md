@@ -117,3 +117,10 @@ package, publish this manifest with the official
 [MCP Registry publisher](https://modelcontextprotocol.io/registry/quickstart).
 The package contains the matching `mcpName` ownership marker required by the
 registry.
+
+The manual GitHub Actions workflow at
+`.github/workflows/publish-release.yml` publishes a pushed `v<version>` tag in
+order: npm package, MCP Registry manifest, then VS Code Marketplace companion.
+Configure either npm trusted publishing or an `NPM_TOKEN` repository secret,
+plus a `VSCE_PAT` secret for the Marketplace publisher. The MCP Registry step
+uses GitHub OIDC and needs no dedicated secret.
