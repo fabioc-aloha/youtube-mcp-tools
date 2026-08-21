@@ -58,17 +58,24 @@ npm test
 
 ## Install in MCP hosts
 
-### Any MCP host
+### Local build
 
-Install the canonical server from npm:
+The 2.0 source release is available now. Install dependencies and build it:
+
+```powershell
+npm install
+npm run build
+```
+
+Then add this server entry to an MCP host:
 
 ```json
 {
   "servers": {
     "youtube": {
       "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "youtube-mcp-tools@2.0.0"]
+      "command": "node",
+      "args": ["C:\\absolute\\path\\to\\youtube-mcp-tools\\dist\\mcp-server\\index.js"]
     }
   }
 }
@@ -80,17 +87,47 @@ metadata, analysis, flashcards, or live topic research, add `YOUTUBE_API_KEY`
 through your host's secret or environment-variable facility; never commit a
 key.
 
-For local development, copy `.env.example` to `.env` (a blank `.env` is already
-created in this repository) and set `YOUTUBE_API_KEY`. Create a restricted key
-in [Google Cloud Console](https://console.cloud.google.com/apis/credentials):
-enable **YouTube Data API v3**, then create an API key restricted to that API.
-The MCP server loads `.env` from its working directory only when an explicit
-environment variable is not already set.
+### npm package
+
+The npm publication of `youtube-mcp-tools@2.0.0` is pending. After it is
+published, replace the local `node` command above with:
+
+```json
+{
+  "type": "stdio",
+  "command": "npx",
+  "args": ["-y", "youtube-mcp-tools@2.0.0"]
+}
+```
+
+### Get a YouTube Data API key
+
+Transcript retrieval and transcript search do not require a Google API key.
+You need a key for YouTube search, video metadata, analysis, flashcards, and
+live topic research.
+
+1. In [Google Cloud Console](https://console.cloud.google.com/), create or
+   select a project.
+2. Open **APIs & Services** → **Library**, search for **YouTube Data API v3**,
+   and enable it for that project.
+3. Open **APIs & Services** → **Credentials** → **Create credentials** →
+   **API key**.
+4. Restrict the key's **API restrictions** to **YouTube Data API v3**. If the
+   server runs from a stable egress address, also use an IP-address application
+   restriction. Do not use a browser-referrer restriction for this local stdio
+   server.
+5. Store the key only in your MCP host's secret or environment-variable
+   facility. For local development, copy `.env.example` to `.env`; `.env` is
+   ignored by Git. The server loads it only when `YOUTUBE_API_KEY` is not
+   already defined in the environment.
+
+Never paste a key into an issue, source file, committed configuration, or a
+prompt. If a key is exposed, delete or rotate it in Google Cloud Console.
 
 For Claude Code, add the local build with:
 
 ```bash
-claude mcp add youtube --scope project --env YOUTUBE_API_KEY=your_key -- npx -y youtube-mcp-tools@2.0.0
+claude mcp add youtube --scope project --env YOUTUBE_API_KEY=your_key -- node dist/mcp-server/index.js
 ```
 
 The server also exposes the `youtube_research_to_collateral` MCP prompt for
@@ -98,8 +135,8 @@ hosts that support prompts.
 
 ### GitHub Copilot CLI through Alex ACT Plugin Mall
 
-For GitHub Copilot CLI, install the optional Mall plugin after registering the
-Mall:
+After the npm package is published, GitHub Copilot CLI users can install the
+optional Mall plugin:
 
 ```bash
 copilot plugin marketplace add fabioc-aloha/Alex_Skill_Mall
