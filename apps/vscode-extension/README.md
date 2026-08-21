@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://marketplace.visualstudio.com/items?itemName=fabioc-aloha.youtube-mcp-tools">
-    <img src="https://img.shields.io/badge/Version-0.5.2-blue?style=for-the-badge&logo=visual-studio-code" alt="Version">
+    <img src="https://img.shields.io/badge/Version-0.5.3-blue?style=for-the-badge&logo=visual-studio-code" alt="Version">
   </a>
   <a href="https://marketplace.visualstudio.com/items?itemName=fabioc-aloha.youtube-mcp-tools">
     <img src="https://img.shields.io/badge/Marketplace-VS%20Code-007ACC?style=for-the-badge&logo=visual-studio-code" alt="VS Code Marketplace">
