@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import {
@@ -12,6 +13,7 @@ import {
     type VideoCandidate,
     parseEnvironmentFile,
 } from '../index.js';
+import { SERVER_VERSION } from '../version.js';
 
 const brief: ResearchBrief = {
     topic: 'Power BI dashboard design',
@@ -127,4 +129,16 @@ test('parses local environment values without accepting malformed entries', () =
         ['MODE', 'research'],
     ]);
     assert.throws(() => parseEnvironmentFile('not a setting'), /Invalid .env entry/);
+});
+
+test('keeps package, registry, and MCP handshake versions aligned', () => {
+    const packageManifest = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')) as { version: string };
+    const registryManifest = JSON.parse(readFileSync(new URL('../../server.json', import.meta.url), 'utf8')) as {
+        version: string;
+        packages: Array<{ version: string }>;
+    };
+
+    assert.equal(SERVER_VERSION, packageManifest.version);
+    assert.equal(registryManifest.version, packageManifest.version);
+    assert.equal(registryManifest.packages[0]?.version, packageManifest.version);
 });

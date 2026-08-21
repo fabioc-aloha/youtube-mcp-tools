@@ -3,7 +3,7 @@
   "name": "io.github.fabioc-aloha/youtube-mcp-tools",
   "title": "YouTube MCP Tools",
   "description": "Evidence-first YouTube research, transcript analysis, and collateral generation.",
-  "version": "2.0.0-alpha.1",
+  "version": "2.0.0",
   "repository": {
     "url": "https://github.com/fabioc-aloha/youtube-mcp-tools",
     "source": "github",
@@ -14,7 +14,7 @@
     {
       "registryType": "npm",
       "identifier": "youtube-mcp-tools",
-      "version": "2.0.0-alpha.1",
+      "version": "2.0.0",
       "runtimeHint": "npx",
       "runtimeArguments": [
         {
@@ -44,6 +44,18 @@
           "description": "API key for the explicitly configured direct-generation provider.",
           "isRequired": false,
           "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "YOUTUBE_MCP_DIRECT_MODEL",
+          "description": "Optional model name for the configured direct-generation provider.",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "YOUTUBE_MCP_DIRECT_BASE_URL",
+          "description": "Optional OpenAI-compatible API base URL for the configured direct-generation provider.",
+          "isRequired": false,
           "format": "string"
         }
       ]

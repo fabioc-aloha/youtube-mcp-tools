@@ -3,6 +3,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 
 import { loadLocalEnvironment } from '../config/local-env.js';
+import { SERVER_VERSION } from '../version.js';
 import {
     buildHostGenerationPrompt,
     createDirectProviderFromEnvironment,
@@ -17,7 +18,6 @@ import {
 } from '../index.js';
 
 const SERVER_NAME = 'youtube-mcp-tools';
-const SERVER_VERSION = '0.1.0';
 const environmentFile = loadLocalEnvironment(process.cwd());
 const apiKey = process.env.YOUTUBE_API_KEY ?? '';
 const core = new YouTubeCore(apiKey, log);

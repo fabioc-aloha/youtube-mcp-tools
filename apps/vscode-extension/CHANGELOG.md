@@ -5,6 +5,17 @@ All notable changes to **YouTube MCP Tools** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-08-20
+
+### Changed
+
+- Repositioned the Marketplace extension as an optional VS Code companion to
+  the canonical `youtube-mcp-tools@2.0.0` MCP server.
+- Updated MCP-host installation examples to launch the released npm package
+  through `npx`, rather than refer to development-only bundle paths.
+- Bundled the canonical 2.0 MCP server with the companion VSIX so the
+  extension's UI and server capabilities share the current implementation.
+
 ## [0.4.0] - 2026-04-29
 
 End-user focused release. The previous transcript scraper was broken against

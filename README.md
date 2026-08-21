@@ -58,27 +58,27 @@ npm test
 
 ## Install in MCP hosts
 
-The current canonical branch is an alpha and is not published to npm yet. Build it
-locally with `npm install && npm run build`, then use this executable:
+### Any MCP host
+
+Install the canonical server from npm:
 
 ```json
 {
   "servers": {
     "youtube": {
-      "command": "node",
-      "args": ["C:\\Development\\youtube-mcp-tools\\dist\\mcp-server\\index.js"],
-      "env": {
-        "YOUTUBE_API_KEY": "${input:youtube-api-key}"
-      }
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "youtube-mcp-tools@2.0.0"]
     }
   }
 }
 ```
 
 This is compatible with VS Code's workspace `.vscode/mcp.json` and user
-configuration. After the `2.0.0` npm release, use `npx -y youtube-mcp-tools`
-instead of the local `node` command. Do not commit API keys; use a host input
-variable or environment file.
+configuration. Transcript tools work with no configuration. To use search,
+metadata, analysis, flashcards, or live topic research, add `YOUTUBE_API_KEY`
+through your host's secret or environment-variable facility; never commit a
+key.
 
 For local development, copy `.env.example` to `.env` (a blank `.env` is already
 created in this repository) and set `YOUTUBE_API_KEY`. Create a restricted key
@@ -90,15 +90,30 @@ environment variable is not already set.
 For Claude Code, add the local build with:
 
 ```bash
-claude mcp add youtube --scope project --env YOUTUBE_API_KEY=your_key -- node dist/mcp-server/index.js
+claude mcp add youtube --scope project --env YOUTUBE_API_KEY=your_key -- npx -y youtube-mcp-tools@2.0.0
 ```
 
 The server also exposes the `youtube_research_to_collateral` MCP prompt for
 hosts that support prompts.
 
+### GitHub Copilot CLI through Alex ACT Plugin Mall
+
+For GitHub Copilot CLI, install the optional Mall plugin after registering the
+Mall:
+
+```bash
+copilot plugin marketplace add fabioc-aloha/Alex_Skill_Mall
+copilot plugin install youtube-research@alex-mall
+```
+
+The plugin declares the same `youtube` stdio server and uses the exact npm
+release. This is a Copilot-specific convenience route; Claude, Cursor, VS
+Code, and other MCP hosts should use the standard installation above.
+
 ## Marketplace readiness
 
-`server.json` is the official MCP Registry manifest. Once the stable npm package
-is published, validate and publish it with `mcp-publisher`; downstream
-marketplaces can then consume the same verified registry metadata. The package
-contains the matching `mcpName` ownership marker required by the registry.
+`server.json` is the official MCP Registry manifest. After publishing the npm
+package, publish this manifest with the official
+[MCP Registry publisher](https://modelcontextprotocol.io/registry/quickstart).
+The package contains the matching `mcpName` ownership marker required by the
+registry.

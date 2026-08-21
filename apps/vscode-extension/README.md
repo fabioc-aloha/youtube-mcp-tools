@@ -21,6 +21,10 @@
   Search • Analyze • Transcribe • Generate Flashcards
 </p>
 
+> **The standalone MCP server is the primary product.** This Marketplace
+> extension is an optional VS Code companion for users who prefer its Activity
+> Bar workflows, local history, flashcard view, and SecretStorage API-key setup.
+
 ---
 
 ## ✨ What it does
@@ -39,7 +43,7 @@
 > single most common use case ("summarize this video for me") with zero
 > setup. Add an API key later if you want search and analysis too.
 
-## ⚡ Quick start (MCP server, no API key)
+## ⚡ Quick start (standalone MCP server, no API key)
 
 The fastest way to try it from any MCP client (Claude Desktop, VS Code Agent
 Mode, Cursor, custom agents):
@@ -52,8 +56,9 @@ Mode, Cursor, custom agents):
 {
   "servers": {
     "youtube": {
-      "command": "node",
-      "args": ["${workspaceFolder}/node_modules/youtube-mcp-tools/dist/mcp-server.js"]
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "youtube-mcp-tools@2.0.0"]
     }
   }
 }
@@ -65,8 +70,8 @@ Claude Desktop (`claude_desktop_config.json`):
 {
   "mcpServers": {
     "youtube": {
-      "command": "node",
-      "args": ["/absolute/path/to/dist/mcp-server.js"]
+      "command": "npx",
+      "args": ["-y", "youtube-mcp-tools@2.0.0"]
     }
   }
 }
@@ -87,7 +92,7 @@ and cites them in its answer.
 Set `YOUTUBE_API_KEY` in your MCP client's `env` block to unlock search,
 video details, full analysis, and flashcards.
 
-## 📦 Installation (VS Code extension)
+## 📦 Optional VS Code companion
 
 1. Open VS Code
 2. Press `Ctrl+P` / `Cmd+P`
@@ -195,8 +200,8 @@ Definition and context...
 
 ## 🤖 Use From Any MCP Client
 
-Beyond the VS Code UI, this package ships the canonical **Model Context
-Protocol** server. Any MCP-aware client can call the established search,
+Beyond the VS Code UI, the canonical **Model Context Protocol** server can be
+installed in any MCP-aware client. It provides the established search,
 metadata, transcript, analysis, flashcard, and quota tools, plus
 evidence-first topic research, collateral prompting, optional direct
 generation, and static resource-page rendering.
@@ -207,8 +212,9 @@ generation, and static resource-page rendering.
 {
   "servers": {
     "youtube": {
-      "command": "node",
-      "args": ["${workspaceFolder}/node_modules/youtube-mcp-tools/dist/mcp-server.js"],
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "youtube-mcp-tools@2.0.0"],
       "env": { "YOUTUBE_API_KEY": "${env:YOUTUBE_API_KEY}" }
     }
   }
@@ -221,8 +227,8 @@ generation, and static resource-page rendering.
 {
   "mcpServers": {
     "youtube": {
-      "command": "node",
-      "args": ["/absolute/path/to/dist/mcp-server.js"],
+      "command": "npx",
+      "args": ["-y", "youtube-mcp-tools@2.0.0"],
       "env": { "YOUTUBE_API_KEY": "AIza..." }
     }
   }
@@ -232,7 +238,7 @@ generation, and static resource-page rendering.
 ### Standalone
 
 ```bash
-YOUTUBE_API_KEY=AIza... node dist/mcp-server.js
+YOUTUBE_API_KEY=AIza... npx -y youtube-mcp-tools@2.0.0
 ```
 
 The server speaks JSON-RPC over stdio. Logs go to stderr only — stdout is
@@ -279,8 +285,9 @@ Look for the **YouTube** icon in the Activity Bar:
 
 ## 📝 Requirements
 
-- VS Code 1.109.0 or higher
-- YouTube Data API key ([Get one free](https://console.cloud.google.com/apis/credentials))
+- VS Code 1.109.0 or higher for the companion extension
+- Node.js 20 or higher for the standalone MCP server
+- A YouTube Data API key only for search, metadata, analysis, flashcards, and live topic research ([Get one free](https://console.cloud.google.com/apis/credentials))
 
 ## 🤝 Contributing
 
