@@ -10,7 +10,7 @@ on:
 
 jobs:
   publish:
-    name: Publish npm, MCP Registry, and VS Code companion
+    name: Publish npm package and MCP Registry manifest
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -63,17 +63,3 @@ jobs:
 
       - name: Publish MCP Registry manifest
         run: ./mcp-publisher publish
-
-      - name: Install extension dependencies
-        run: npm ci
-        working-directory: apps/vscode-extension
-
-      - name: Test VS Code companion
-        run: npm test
-        working-directory: apps/vscode-extension
-
-      - name: Publish VS Code companion
-        run: npx --yes @vscode/vsce@3.9.2 publish --no-dependencies
-        working-directory: apps/vscode-extension
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}

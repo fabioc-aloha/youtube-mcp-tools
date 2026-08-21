@@ -5,6 +5,14 @@ All notable changes to **YouTube MCP Tools** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2026-08-20
+
+### Fixed
+
+- Restored Marketplace banner and CorreaX logo rendering by using immutable
+  public asset URLs. The canonical source repository is private, so the
+  Marketplace cannot fetch its raw GitHub media assets.
+
 ## [0.5.0] - 2026-08-20
 
 ### Changed

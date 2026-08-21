@@ -1,12 +1,12 @@
 # YouTube MCP Tools for VS Code
 
 <p align="center">
-  <img src="media/banner.png" alt="YouTube MCP Tools Banner" width="100%">
+  <img src="https://raw.githubusercontent.com/fabioc-aloha/youtube-mcp-vscode/f36aa9b1e1b278bfcac5826c93c929fb7b890092/media/banner.png" alt="YouTube MCP Tools Banner" width="100%">
 </p>
 
 <p align="center">
   <a href="https://marketplace.visualstudio.com/items?itemName=fabioc-aloha.youtube-mcp-tools">
-    <img src="https://img.shields.io/badge/Version-0.5.0-blue?style=for-the-badge&logo=visual-studio-code" alt="Version">
+    <img src="https://img.shields.io/badge/Version-0.5.1-blue?style=for-the-badge&logo=visual-studio-code" alt="Version">
   </a>
   <a href="https://marketplace.visualstudio.com/items?itemName=fabioc-aloha.youtube-mcp-tools">
     <img src="https://img.shields.io/badge/Marketplace-VS%20Code-007ACC?style=for-the-badge&logo=visual-studio-code" alt="VS Code Marketplace">
@@ -307,7 +307,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 <p align="center">
   <a href="https://correax.com">
-    <img src="media/correax-logo.png" alt="CorreaX" height="32">
+    <img src="https://raw.githubusercontent.com/fabioc-aloha/youtube-mcp-vscode/f36aa9b1e1b278bfcac5826c93c929fb7b890092/media/correax-logo.png" alt="CorreaX" height="32">
   </a>
 </p>
 

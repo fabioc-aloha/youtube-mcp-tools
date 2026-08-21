@@ -2,7 +2,7 @@
   "name": "youtube-mcp-tools",
   "displayName": "YouTube MCP Tools",
   "description": "Search YouTube, analyze videos, extract transcripts with deep-link timestamps, search inside transcripts, and generate flashcards. Includes a modern MCP server for evidence-first research and collateral generation.",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "publisher": "fabioc-aloha",
   "author": {
     "name": "Fabio Correa",

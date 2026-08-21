@@ -120,7 +120,7 @@ registry.
 
 The manual GitHub Actions workflow at
 `.github/workflows/publish-release.yml` publishes a pushed `v<version>` tag in
-order: npm package, MCP Registry manifest, then VS Code Marketplace companion.
-Configure either npm trusted publishing or an `NPM_TOKEN` repository secret,
-plus a `VSCE_PAT` secret for the Marketplace publisher. The MCP Registry step
-uses GitHub OIDC and needs no dedicated secret.
+order: npm package, then MCP Registry manifest. Configure either npm trusted
+publishing or an `NPM_TOKEN` repository secret; the MCP Registry step uses
+GitHub OIDC and needs no dedicated secret. Publish the VS Code companion VSIX
+separately through the Visual Studio Marketplace publisher portal.
