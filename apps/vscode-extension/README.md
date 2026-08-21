@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://marketplace.visualstudio.com/items?itemName=fabioc-aloha.youtube-mcp-tools">
-    <img src="https://img.shields.io/badge/Version-0.5.1-blue?style=for-the-badge&logo=visual-studio-code" alt="Version">
+    <img src="https://img.shields.io/badge/Version-0.5.2-blue?style=for-the-badge&logo=visual-studio-code" alt="Version">
   </a>
   <a href="https://marketplace.visualstudio.com/items?itemName=fabioc-aloha.youtube-mcp-tools">
     <img src="https://img.shields.io/badge/Marketplace-VS%20Code-007ACC?style=for-the-badge&logo=visual-studio-code" alt="VS Code Marketplace">
@@ -58,7 +58,7 @@ Mode, Cursor, custom agents):
     "youtube": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "youtube-mcp-tools@2.0.0"]
+      "args": ["-y", "youtube-mcp-tools@2.0.1"]
     }
   }
 }
@@ -71,7 +71,7 @@ Claude Desktop (`claude_desktop_config.json`):
   "mcpServers": {
     "youtube": {
       "command": "npx",
-      "args": ["-y", "youtube-mcp-tools@2.0.0"]
+      "args": ["-y", "youtube-mcp-tools@2.0.1"]
     }
   }
 }
@@ -214,7 +214,7 @@ generation, and static resource-page rendering.
     "youtube": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "youtube-mcp-tools@2.0.0"],
+      "args": ["-y", "youtube-mcp-tools@2.0.1"],
       "env": { "YOUTUBE_API_KEY": "${env:YOUTUBE_API_KEY}" }
     }
   }
@@ -228,7 +228,7 @@ generation, and static resource-page rendering.
   "mcpServers": {
     "youtube": {
       "command": "npx",
-      "args": ["-y", "youtube-mcp-tools@2.0.0"],
+      "args": ["-y", "youtube-mcp-tools@2.0.1"],
       "env": { "YOUTUBE_API_KEY": "AIza..." }
     }
   }
@@ -238,7 +238,7 @@ generation, and static resource-page rendering.
 ### Standalone
 
 ```bash
-YOUTUBE_API_KEY=AIza... npx -y youtube-mcp-tools@2.0.0
+YOUTUBE_API_KEY=AIza... npx -y youtube-mcp-tools@2.0.1
 ```
 
 The server speaks JSON-RPC over stdio. Logs go to stderr only — stdout is

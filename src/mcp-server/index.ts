@@ -31,7 +31,7 @@ export function createServer(): McpServer {
             title: 'YouTube Search',
             description: 'Search YouTube for public videos. Requires YOUTUBE_API_KEY.',
             inputSchema: {
-                query: z.string().min(1),
+                query: z.string().min(1).max(512),
                 maxResults: z.number().int().min(1).max(50).default(10),
             },
         },
@@ -76,7 +76,7 @@ export function createServer(): McpServer {
             description: 'Find timestamped mentions inside a public caption transcript. Does not require a YouTube API key.',
             inputSchema: {
                 video: z.string().min(1),
-                query: z.string().min(1),
+                query: z.string().min(1).max(512),
                 regex: z.boolean().default(false),
                 contextSeconds: z.number().int().min(0).max(120).default(10),
                 maxMatches: z.number().int().min(1).max(200).default(25),

@@ -1,6 +1,6 @@
 {
   "name": "youtube-research",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Optional GitHub Copilot MCP integration for evidence-first YouTube research, transcript analysis, and source-grounded collateral generation.",
   "keywords": [
     "youtube",
@@ -27,7 +27,7 @@
       "command": "npx",
       "args": [
         "-y",
-        "youtube-mcp-tools@2.0.0"
+        "youtube-mcp-tools@2.0.1"
       ],
       "env": {
         "YOUTUBE_API_KEY": "${env:YOUTUBE_API_KEY}",

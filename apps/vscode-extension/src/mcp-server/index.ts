@@ -165,7 +165,7 @@ const TOOLS = [
             type: 'object',
             properties: {
                 video: { type: 'string', description: 'Video ID or YouTube URL.' },
-                query: { type: 'string', description: 'Substring to search for (case-insensitive).' },
+                query: { type: 'string', maxLength: 512, description: 'Substring to search for (case-insensitive), or a regex up to 512 characters.' },
                 regex: { type: 'boolean', description: 'Treat `query` as a JS regex instead of plain substring.', default: false },
                 contextSeconds: {
                     type: 'integer',

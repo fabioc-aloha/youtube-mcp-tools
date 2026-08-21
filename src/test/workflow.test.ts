@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
+import { YoutubeTranscript } from 'youtube-transcript';
 
 import {
     buildHostGenerationPrompt,
@@ -14,6 +15,7 @@ import {
     parseEnvironmentFile,
 } from '../index.js';
 import { SERVER_VERSION } from '../version.js';
+import { normalizeTranscriptTimings, YouTubeCore } from '../youtube/youtube-core.js';
 
 const brief: ResearchBrief = {
     topic: 'Power BI dashboard design',
@@ -141,4 +143,35 @@ test('keeps package, registry, and MCP handshake versions aligned', () => {
     assert.equal(SERVER_VERSION, packageManifest.version);
     assert.equal(registryManifest.version, packageManifest.version);
     assert.equal(registryManifest.packages[0]?.version, packageManifest.version);
+});
+
+test('normalizes classic and srv3 caption timings into seconds', () => {
+    assert.deepEqual(normalizeTranscriptTimings([{ offset: 125.5, duration: 4.25 }], 'seconds'), [
+        { offset: 125.5, duration: 4.25 },
+    ]);
+    assert.deepEqual(normalizeTranscriptTimings([{ offset: 125_500, duration: 4_250 }], 'milliseconds'), [
+        { offset: 125.5, duration: 4.25 },
+    ]);
+});
+
+test('stops catastrophic regex transcript searches without blocking the server', async () => {
+    const originalFetchTranscript = YoutubeTranscript.fetchTranscript;
+    YoutubeTranscript.fetchTranscript = async () => [{
+        text: `${'a'.repeat(10_000)}!`,
+        offset: 0,
+        duration: 1_000,
+        lang: 'en',
+    }];
+
+    try {
+        const core = new YouTubeCore('');
+        const validMatches = await core.searchTranscript('dQw4w9WgXcQ', '^a+!$', { regex: true });
+        assert.equal(validMatches.length, 1);
+        await assert.rejects(
+            core.searchTranscript('dQw4w9WgXcQ', '(a+)+$', { regex: true }),
+            /exceeded 250ms and was stopped/,
+        );
+    } finally {
+        YoutubeTranscript.fetchTranscript = originalFetchTranscript;
+    }
 });

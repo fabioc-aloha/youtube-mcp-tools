@@ -12,6 +12,7 @@
  */
 
 import * as https from 'https';
+import { Worker } from 'node:worker_threads';
 import { YoutubeTranscript } from 'youtube-transcript';
 
 // ============================================================================
@@ -131,6 +132,133 @@ export interface QuotaInfo {
 }
 
 export type Logger = (message: string) => void;
+
+interface RawTranscriptSegment {
+    text: string;
+    duration: number;
+    offset: number;
+    lang?: string;
+}
+
+type TranscriptTimestampUnit = 'milliseconds' | 'seconds';
+
+const REGEX_SEARCH_TIMEOUT_MS = 250;
+const MAX_REGEX_QUERY_LENGTH = 512;
+const REGEX_WORKER_SOURCE = `
+const { parentPort, workerData } = require('node:worker_threads');
+
+try {
+    const matcher = new RegExp(workerData.query, 'i');
+    const matches = [];
+    for (let index = 0; index < workerData.texts.length && matches.length < workerData.maxMatches; index += 1) {
+        if (matcher.test(workerData.texts[index])) {
+            matches.push(index);
+        }
+    }
+    parentPort.postMessage({ matches });
+} catch (error) {
+    parentPort.postMessage({ error: error instanceof Error ? error.message : String(error) });
+}
+`;
+
+export function normalizeTranscriptTimings(
+    segments: ReadonlyArray<Pick<RawTranscriptSegment, 'offset' | 'duration'>>,
+    unit: TranscriptTimestampUnit,
+): Array<Pick<TranscriptSegment, 'offset' | 'duration'>> {
+    const multiplier = unit === 'milliseconds' ? 1 / 1000 : 1;
+    return segments.map((segment) => ({
+        offset: segment.offset * multiplier,
+        duration: segment.duration * multiplier,
+    }));
+}
+
+function captionTimestampUnit(xml: string): TranscriptTimestampUnit | undefined {
+    if (/<p\s+t="\d+"\s+d="\d+"/.test(xml)) {
+        return 'milliseconds';
+    }
+    if (/<text\s+start="[^"]*"\s+dur="[^"]*">/.test(xml)) {
+        return 'seconds';
+    }
+    return undefined;
+}
+
+function isCaptionRequest(input: Parameters<typeof globalThis.fetch>[0]): boolean {
+    const source = typeof input === 'string'
+        ? input
+        : input instanceof URL
+            ? input.href
+            : input.url;
+    try {
+        const url = new URL(source);
+        return url.hostname.endsWith('.youtube.com') && url.pathname === '/api/timedtext';
+    } catch {
+        return false;
+    }
+}
+
+function inferTranscriptTimestampUnit(segments: ReadonlyArray<RawTranscriptSegment>): TranscriptTimestampUnit {
+    const largestDuration = Math.max(0, ...segments.map((segment) => segment.duration));
+    return largestDuration >= 100 ? 'milliseconds' : 'seconds';
+}
+
+function isRegexMatchIndexList(value: unknown): value is number[] {
+    return Array.isArray(value) && value.every((index) => Number.isInteger(index) && index >= 0);
+}
+
+async function findRegexMatchIndexes(query: string, texts: string[], maxMatches: number): Promise<Set<number>> {
+    if (query.length > MAX_REGEX_QUERY_LENGTH) {
+        throw new Error(`Regex queries cannot exceed ${MAX_REGEX_QUERY_LENGTH} characters.`);
+    }
+
+    return new Promise<Set<number>>((resolve, reject) => {
+        let settled = false;
+        const worker = new Worker(REGEX_WORKER_SOURCE, {
+            eval: true,
+            workerData: { query, texts, maxMatches },
+            resourceLimits: { maxOldGenerationSizeMb: 16, stackSizeMb: 4 },
+        });
+        const timeout = setTimeout(() => {
+            finish(() => reject(new Error(`Regex transcript search exceeded ${REGEX_SEARCH_TIMEOUT_MS}ms and was stopped.`)));
+        }, REGEX_SEARCH_TIMEOUT_MS);
+
+        function finish(callback: () => void): void {
+            if (settled) {
+                return;
+            }
+            settled = true;
+            clearTimeout(timeout);
+            worker.removeAllListeners();
+            void worker.terminate();
+            callback();
+        }
+
+        worker.once('message', (message: unknown) => {
+            if (typeof message !== 'object' || message === null) {
+                finish(() => reject(new Error('Regex transcript search returned an invalid result.')));
+                return;
+            }
+            const result = message as { matches?: unknown; error?: unknown };
+            if (typeof result.error === 'string') {
+                finish(() => reject(new Error(`Invalid regex query: ${result.error}`)));
+                return;
+            }
+            const matches = result.matches;
+            if (!isRegexMatchIndexList(matches)) {
+                finish(() => reject(new Error('Regex transcript search returned invalid match indexes.')));
+                return;
+            }
+            finish(() => resolve(new Set(matches)));
+        });
+        worker.once('error', (error) => {
+            finish(() => reject(new Error(`Regex transcript search failed: ${error.message}`)));
+        });
+        worker.once('exit', (code) => {
+            if (code !== 0) {
+                finish(() => reject(new Error(`Regex transcript search worker exited with code ${code}.`)));
+            }
+        });
+    });
+}
 
 // ============================================================================
 // INTERNAL YOUTUBE API SHAPES
@@ -407,9 +535,17 @@ export class YouTubeCore {
         // page format changes frequently (player config, signed timedtext
         // URLs, PoToken-protected endpoints, locale variants). The library
         // tracks those upstream so we don't have to. No API key needed.
-        let raw: Array<{ text: string; duration: number; offset: number; lang?: string }>;
+        let raw: RawTranscriptSegment[];
+        let timestampUnit: TranscriptTimestampUnit | undefined;
+        const fetchWithCaptionDetection: typeof globalThis.fetch = async (input, init) => {
+            const response = await globalThis.fetch(input, init);
+            if (isCaptionRequest(input)) {
+                timestampUnit = captionTimestampUnit(await response.clone().text());
+            }
+            return response;
+        };
         try {
-            raw = await YoutubeTranscript.fetchTranscript(videoId);
+            raw = await YoutubeTranscript.fetchTranscript(videoId, { fetch: fetchWithCaptionDetection });
         } catch (e) {
             const msg = e instanceof Error ? e.message : String(e);
             // Normalise the most common failure modes for callers.
@@ -421,13 +557,14 @@ export class YouTubeCore {
             }
             throw new Error(`Transcript fetch failed for ${videoId}: ${msg}`);
         }
-        const segments: TranscriptSegment[] = raw.map(s => ({
-            text: YouTubeCore.decodeHtmlEntities(s.text).trim(),
-            // The library reports offset/duration in **milliseconds**; the
-            // rest of this codebase uses **seconds**. Convert here so the
-            // public contract on `TranscriptSegment` stays consistent.
-            offset: s.offset / 1000,
-            duration: s.duration / 1000,
+        const unit = timestampUnit ?? inferTranscriptTimestampUnit(raw);
+        if (!timestampUnit) {
+            this.log(`Could not identify caption timestamp units for ${videoId}; inferred ${unit}.`);
+        }
+        const timings = normalizeTranscriptTimings(raw, unit);
+        const segments: TranscriptSegment[] = raw.map((segment, index) => ({
+            text: YouTubeCore.decodeHtmlEntities(segment.text).trim(),
+            ...timings[index],
         }));
         return {
             videoId,
@@ -483,15 +620,10 @@ export class YouTubeCore {
             throw new Error('searchTranscript: query must be a non-empty string');
         }
         const t = await this.getTranscript(videoId);
-        const matcher: (s: string) => boolean = regex
-            ? (() => {
-                const re = new RegExp(query, 'i');
-                return (s: string) => re.test(s);
-            })()
-            : (() => {
-                const needle = query.toLowerCase();
-                return (s: string) => s.toLowerCase().includes(needle);
-            })();
+        const regexMatchIndexes = regex
+            ? await findRegexMatchIndexes(query, t.segments.map((segment) => segment.text), maxMatches)
+            : undefined;
+        const needle = query.toLowerCase();
 
         const out: Array<{
             offset: number;
@@ -502,7 +634,10 @@ export class YouTubeCore {
         }> = [];
 
         for (let i = 0; i < t.segments.length && out.length < maxMatches; i++) {
-            if (!matcher(t.segments[i].text)) { continue; }
+            const matches = regex
+                ? regexMatchIndexes?.has(i) === true
+                : t.segments[i].text.toLowerCase().includes(needle);
+            if (!matches) { continue; }
             const center = t.segments[i];
             // Expand outward by contextSeconds in both directions.
             let start = i, end = i;

@@ -5,6 +5,19 @@ All notable changes to **YouTube MCP Tools** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.2] - 2026-08-20
+
+### Fixed
+
+- Restored correct deep-link timestamps for both classic and srv3 YouTube
+  caption formats.
+- Moved regex transcript search into a resource-limited worker with a 250 ms
+  timeout, preventing pathological patterns from blocking VS Code.
+- Allowed transcript commands to run without a YouTube Data API key, as
+  documented.
+- Cleared a legacy plaintext VS Code setting after its API key is securely
+  migrated to SecretStorage.
+
 ## [0.5.1] - 2026-08-20
 
 ### Fixed

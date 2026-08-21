@@ -17,6 +17,7 @@ jobs:
       id-token: write
     env:
       RELEASE_VERSION: ${{ inputs.version }}
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     steps:
       - name: Check out the immutable release tag
@@ -40,22 +41,37 @@ jobs:
       - name: Install and test the MCP server
         run: npm ci && npm test
 
+      - name: Check npm package publication
+        id: npm-package
+        shell: bash
+        run: |
+          if npm view "youtube-mcp-tools@$RELEASE_VERSION" version --registry=https://registry.npmjs.org >/dev/null 2>&1; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Publish npm package with token
-        if: ${{ secrets.NPM_TOKEN != '' }}
+        if: ${{ steps.npm-package.outputs.published != 'true' && env.NPM_TOKEN != '' }}
         run: npm publish --provenance
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ env.NPM_TOKEN }}
 
       - name: Publish npm package with trusted publishing
-        if: ${{ secrets.NPM_TOKEN == '' }}
+        if: ${{ steps.npm-package.outputs.published != 'true' && env.NPM_TOKEN == '' }}
         run: npm publish --provenance
 
       - name: Install MCP Registry publisher
         shell: bash
         run: |
+          publisher_version=1.8.1
+          publisher_sha256=a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc
           curl --fail --location --silent --show-error \
-            https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz \
-            | tar xz mcp-publisher
+            "https://github.com/modelcontextprotocol/registry/releases/download/v${publisher_version}/mcp-publisher_linux_amd64.tar.gz" \
+            --output mcp-publisher.tar.gz
+          echo "${publisher_sha256}  mcp-publisher.tar.gz" | sha256sum --check
+          tar xzf mcp-publisher.tar.gz mcp-publisher
+          rm mcp-publisher.tar.gz
           chmod +x mcp-publisher
 
       - name: Authenticate to MCP Registry with GitHub OIDC

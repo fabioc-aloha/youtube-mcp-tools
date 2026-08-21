@@ -89,14 +89,14 @@ key.
 
 ### npm package
 
-The npm publication of `youtube-mcp-tools@2.0.0` is pending. After it is
+The npm publication of `youtube-mcp-tools@2.0.1` is pending. After it is
 published, replace the local `node` command above with:
 
 ```json
 {
   "type": "stdio",
   "command": "npx",
-  "args": ["-y", "youtube-mcp-tools@2.0.0"]
+  "args": ["-y", "youtube-mcp-tools@2.0.1"]
 }
 ```
 

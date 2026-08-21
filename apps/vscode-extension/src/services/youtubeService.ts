@@ -96,35 +96,45 @@ export class YouTubeService {
         };
     }
 
-    private async ensureCore(): Promise<YouTubeCore> {
-        const apiKey = await this.getApiKey();
-        if (this.core && apiKey === this.cachedApiKey) {
+    private async ensureCore(requireApiKey = true): Promise<YouTubeCore> {
+        const apiKey = await this.resolveApiKey();
+        if (!apiKey && requireApiKey) {
+            throw new Error(
+                'YouTube API key not configured. Use "YouTube MCP: Set API Key" command or add to settings.',
+            );
+        }
+        const resolvedApiKey = apiKey ?? '';
+        if (this.core && resolvedApiKey === this.cachedApiKey) {
             return this.core;
         }
-        if (this.core && this.cachedApiKey !== apiKey) {
-            this.core.setApiKey(apiKey);
-            this.cachedApiKey = apiKey;
+        if (this.core && this.cachedApiKey !== resolvedApiKey) {
+            this.core.setApiKey(resolvedApiKey);
+            this.cachedApiKey = resolvedApiKey;
             return this.core;
         }
-        this.core = new YouTubeCore(apiKey, msg => this.log(msg), this.buildQuotaHooks());
-        this.cachedApiKey = apiKey;
+        this.core = new YouTubeCore(resolvedApiKey, msg => this.log(msg), this.buildQuotaHooks());
+        this.cachedApiKey = resolvedApiKey;
         return this.core;
     }
 
     /**
      * Resolve API key. Priority: SecretStorage > VS Code settings > .env > env var.
-     * If found in plain settings, migrates to SecretStorage.
+     * Plain settings are cleared only after a successful SecretStorage migration.
      */
-    async getApiKey(): Promise<string> {
+    private async resolveApiKey(): Promise<string | undefined> {
+        const config = vscode.workspace.getConfiguration('youtubeMcp');
         if (this.secretStorage) {
             const secret = await this.secretStorage.get('youtubeMcp.apiKey');
-            if (secret) { return secret; }
+            if (secret) {
+                await this.clearLegacySettingsKey(config);
+                return secret;
+            }
         }
-        const config = vscode.workspace.getConfiguration('youtubeMcp');
         const settingsKey = config.get<string>('apiKey', '');
         if (settingsKey) {
             if (this.secretStorage) {
                 await this.secretStorage.store('youtubeMcp.apiKey', settingsKey);
+                await this.clearLegacySettingsKey(config);
                 this.log('Migrated API key from settings to SecretStorage');
             }
             return settingsKey;
@@ -138,9 +148,34 @@ export class YouTubeService {
             this.log('Using API key from environment variable');
             return process.env.YOUTUBE_API_KEY;
         }
+        return undefined;
+    }
+
+    /**
+     * Resolve API key. Priority: SecretStorage > VS Code settings > .env > env var.
+     * If found in plain settings, migrates to SecretStorage before clearing it.
+     */
+    async getApiKey(): Promise<string> {
+        const apiKey = await this.resolveApiKey();
+        if (apiKey) {
+            return apiKey;
+        }
         throw new Error(
             'YouTube API key not configured. Use "YouTube MCP: Set API Key" command or add to settings.',
         );
+    }
+
+    private async clearLegacySettingsKey(config: vscode.WorkspaceConfiguration): Promise<void> {
+        const inspected = config.inspect<string>('apiKey');
+        if (inspected?.workspaceFolderValue !== undefined) {
+            await config.update('apiKey', undefined, vscode.ConfigurationTarget.WorkspaceFolder);
+        }
+        if (inspected?.workspaceValue !== undefined) {
+            await config.update('apiKey', undefined, vscode.ConfigurationTarget.Workspace);
+        }
+        if (inspected?.globalValue !== undefined) {
+            await config.update('apiKey', undefined, vscode.ConfigurationTarget.Global);
+        }
     }
 
     async setApiKey(apiKey: string): Promise<void> {
@@ -180,11 +215,11 @@ export class YouTubeService {
     }
 
     async getTranscript(videoId: string): Promise<VideoTranscript> {
-        return (await this.ensureCore()).getTranscript(videoId);
+        return (await this.ensureCore(false)).getTranscript(videoId);
     }
 
     async getFormattedTranscript(videoId: string): Promise<string> {
-        return (await this.ensureCore()).getFormattedTranscript(videoId);
+        return (await this.ensureCore(false)).getFormattedTranscript(videoId);
     }
 
     async analyzeVideo(videoId: string): Promise<VideoAnalysisResult> {
