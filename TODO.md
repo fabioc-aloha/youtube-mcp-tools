@@ -20,7 +20,7 @@
 
 ## Publish companion and Mall update
 
-- [ ] Upload `apps/vscode-extension/youtube-mcp-tools-0.5.2.vsix` through the
+- [ ] Upload `apps/vscode-extension/youtube-mcp-tools-0.5.3.vsix` through the
   Visual Studio Marketplace publisher portal.
 - [ ] Update `youtube-research@alex-mall` to version `1.0.1` so it launches
   `youtube-mcp-tools@2.0.1`.
