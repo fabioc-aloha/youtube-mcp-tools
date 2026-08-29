@@ -6,10 +6,40 @@ The project consolidates the supported YouTube MCP and extension workflows:
 
 - search YouTube and inspect videos, channels, and playlists;
 - retrieve, search, and cite caption transcripts;
+- find timestamped transcript segments relevant to a research objective;
 - analyze video content and create flashcards;
 - research a topic into a transparent, curated video collection;
 - turn selected, transcript-backed videos into host-grounded or direct-provider collateral;
 - render accessible static HTML resource pages.
+
+## MCP tools
+
+| Tool | What it does | YouTube API key? | Key dependency |
+|---|---|---:|---|
+| `youtube_search` | Search YouTube for public videos | Yes | YouTube Data API v3 |
+| `youtube_get_video_details` | Retrieve video metadata, duration, tags, captions, and engagement metadata | Yes | YouTube Data API v3 |
+| `youtube_get_transcript` | Retrieve a video's caption transcript with timestamps | No | `youtube-transcript` |
+| `youtube_search_transcript` | Search a transcript for terms or regex and return timestamped matches | No | `youtube-transcript` + Node worker threads |
+| `youtube_find_relevant_segments` | Find transcript sections relevant to a research objective, with evidence and timestamp links | No | `youtube-transcript` + local research ranking |
+| `youtube_analyze_video` | Analyze a video and its transcript for summary, concepts, and observable signals | Yes | YouTube Data API v3 + transcript |
+| `youtube_generate_flashcards` | Generate study flashcards from video concepts and key points | Yes | YouTube Data API v3 + transcript |
+| `youtube_quota_status` | Report process/API quota state | No | Local quota tracking |
+| `youtube_research_topic` | Discover, inspect, score, diversify, and curate videos for a research objective | Yes | YouTube Data API v3 + transcript + research selector |
+| `youtube_build_collateral_prompt` | Build an evidence- and citation-constrained prompt for a host model | No | Local research/collateral logic |
+| `youtube_generate_collateral` | Generate transcript-grounded collateral through a configured provider | Provider-dependent | Configured direct provider adapter |
+| `youtube_render_resource_page` | Render reviewed research and collateral as an accessible standalone HTML page | No | Local HTML renderer |
+
+The server also exposes the `youtube_research_to_collateral` MCP prompt for hosts that support MCP prompts.
+
+### Capability layers
+
+The server has a deliberate API-key boundary:
+
+**No API key required** — transcript retrieval, transcript search, timestamped segment intelligence, research/collateral prompt construction, resource rendering, and local quota state.
+
+**YouTube API key required** — YouTube discovery, authoritative video metadata, video analysis, flashcards, and live topic research.
+
+This allows transcript-backed intelligence to work in constrained environments while keeping YouTube Data API operations explicit.
 
 ## Evidence-first collateral
 
