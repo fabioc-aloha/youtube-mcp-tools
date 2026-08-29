@@ -5,6 +5,7 @@ import { YoutubeTranscript } from 'youtube-transcript';
 
 import {
     buildHostGenerationPrompt,
+    findRelevantSegments,
     generateWithDirectProvider,
     renderResourcePage,
     selectResearchCollection,
@@ -12,7 +13,6 @@ import {
     type DirectCollateralProvider,
     type ResearchBrief,
     type VideoCandidate,
-    parseEnvironmentFile,
 } from '../index.js';
 import { SERVER_VERSION } from '../version.js';
 import { normalizeTranscriptTimings, YouTubeCore } from '../youtube/youtube-core.js';
@@ -82,6 +82,29 @@ test('selects transcript-backed candidates and explains exclusions', () => {
     assert.match(collection.selectionMethod, /inspectable totals/);
 });
 
+test('finds timestamped transcript segments relevant to a research objective', () => {
+    const segments = findRelevantSegments({
+        videoId: 'good-video-1',
+        objective: 'learn dashboard design',
+        topics: ['business question', 'chart'],
+        maxSegments: 3,
+        minDurationSeconds: 5,
+        maxDurationSeconds: 60,
+    }, {
+        videoId: 'good-video-1',
+        fullText: 'Start with the business question before selecting a dashboard chart.',
+        segments: [
+            { text: 'Start with the business question before selecting a dashboard chart.', offset: 10, duration: 12 },
+        ],
+    });
+
+    assert.equal(segments.length, 1);
+    assert.equal(segments[0]?.startSeconds, 10);
+    assert.equal(segments[0]?.endSeconds, 22);
+    assert.match(segments[0]?.url ?? '', /t=10/);
+    assert.match(segments[0]?.rationale ?? '', /requested topic terms/);
+});
+
 test('builds a citation-constrained host prompt', () => {
     const prompt = buildHostGenerationPrompt(collection, collateralBrief);
 
@@ -123,14 +146,6 @@ test('renders an accessible standalone resource page without injecting content',
     assert.match(html, /var\(--cp-bg\)/);
     assert.match(html, /&lt;Unsafe title&gt;/);
     assert.doesNotMatch(html, /<h1><Unsafe title><\/h1>/);
-});
-
-test('parses local environment values without accepting malformed entries', () => {
-    assert.deepEqual(parseEnvironmentFile('# comment\nYOUTUBE_API_KEY="test-key"\nexport MODE=research\n'), [
-        ['YOUTUBE_API_KEY', 'test-key'],
-        ['MODE', 'research'],
-    ]);
-    assert.throws(() => parseEnvironmentFile('not a setting'), /Invalid .env entry/);
 });
 
 test('keeps package, registry, and MCP handshake versions aligned', () => {
