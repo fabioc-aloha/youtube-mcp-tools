@@ -1,28 +1,45 @@
-# Release TODO
+# Release & Product TODO
 
-## Blocked on npm account recovery
+## 2.1.0 release
 
-- [ ] Complete the npm package-owner account's 2FA reset.
-- [ ] Sign in to npm as an owner of `youtube-mcp-tools`.
-- [ ] Configure npm trusted publishing for:
-  - GitHub owner: `fabioc-aloha`
-  - Repository: `youtube-mcp-tools`
-  - Workflow: `.github/workflows/publish-release.yml`
-- [ ] Alternatively, create an npm automation token and save it as the
-  repository's `NPM_TOKEN` GitHub Actions secret.
+- [x] Recover npm package-owner account access.
+- [ ] Confirm npm trusted publishing is configured for `fabioc-aloha/youtube-mcp-tools`, or configure the repository `NPM_TOKEN` secret.
+- [ ] Create immutable Git tag `v2.1.0` from the stable 2.1.0 commit.
+- [ ] Run **Publish release** in GitHub Actions with version `2.1.0`.
+- [ ] Verify `youtube-mcp-tools@2.1.0` is publicly available on npm.
+- [ ] Verify `io.github.fabioc-aloha/youtube-mcp-tools` version `2.1.0` is listed in the MCP Registry.
+- [ ] Verify the published package starts successfully through `npx -y youtube-mcp-tools@2.1.0`.
 
-## Publish 2.0.1
+## Existing ecosystem updates
 
-- [ ] In GitHub Actions, run **Publish release** with version `2.0.1`.
-- [ ] Verify `youtube-mcp-tools@2.0.1` is publicly available on npm.
-- [ ] Verify `io.github.fabioc-aloha/youtube-mcp-tools` version `2.0.1` is
-  listed in the MCP Registry.
+- [ ] Verify the VS Code extension still works with the 2.1.0 server.
+- [ ] Update `youtube-research@alex-mall` when the Mall package is ready for 2.1.0.
+- [ ] Install/update the Mall plugin and verify the `youtube` MCP server starts successfully.
+- [ ] Update `ACT_Skills_for_Scout` only after Scout compatibility review/canary.
 
-## Publish companion and Mall update
+## Product evolution
 
-- [ ] Upload `apps/vscode-extension/youtube-mcp-tools-0.5.3.vsix` through the
-  Visual Studio Marketplace publisher portal.
-- [ ] Update `youtube-research@alex-mall` to version `1.0.1` so it launches
-  `youtube-mcp-tools@2.0.1`.
-- [ ] Install or update the Mall plugin and verify the `youtube` MCP server
-  starts successfully.
+### Segment intelligence
+
+- [x] Add reusable transcript segment schema and primitive.
+- [x] Add timestamped deep links and evidence.
+- [x] Add regression coverage.
+- [ ] Validate segment quality against real-world transcripts.
+- [ ] Improve semantic relevance ranking.
+- [ ] Improve section boundary detection and reduce overlapping windows.
+
+### Collection intelligence
+
+- [ ] Improve candidate diversity.
+- [ ] Add redundancy / near-duplicate reduction.
+- [ ] Improve coverage optimization.
+- [ ] Identify complementary sources.
+- [ ] Identify meaningful disagreements / alternative approaches.
+- [ ] Generate recommended viewing sequences.
+
+### Discovery
+
+- [ ] Improve objective-driven discovery.
+- [ ] Support multi-query candidate generation.
+- [ ] Improve freshness handling.
+- [ ] Preserve search provenance.
