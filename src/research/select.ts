@@ -17,18 +17,24 @@ export function selectResearchCollection(
     validateBrief(brief);
 
     const evaluated = candidates.map((candidate) => evaluateCandidate(brief, candidate));
-    const eligible = evaluated
-        .filter((candidate) => candidate.evidence.every((item) => item.passed || item.criterion === 'Recency target'))
-        .sort((left, right) => right.selectionScore - left.selectionScore);
+    const eligible = evaluated.filter((candidate) =>
+        candidate.evidence.every((item) => item.passed || item.criterion === 'Recency target'),
+    );
+    const selected = selectDiverse(eligible, brief.maxSelections);
+    const selectedIds = new Set(selected.map((candidate) => candidate.video.id));
 
     return {
         brief,
-        selected: eligible.slice(0, brief.maxSelections),
+        selected,
         excluded: evaluated
-            .filter((candidate) => !eligible.includes(candidate) || !eligible.slice(0, brief.maxSelections).includes(candidate))
+            .filter((candidate) => !selectedIds.has(candidate.video.id))
             .sort((left, right) => right.selectionScore - left.selectionScore),
         generatedAt: brief.asOf,
-        selectionMethod: 'Explicit relevance, coverage, transcript availability, duration, source identity, and recency evidence. Selection scores are weighted, inspectable totals rather than opaque quality ratings.',
+        selectionMethod: 'Explicit relevance, coverage, transcript availability, duration, source identity, recency, source diversity, redundancy reduction, and coverage optimization. Selection scores are weighted, inspectable totals rather than opaque quality ratings.',
+        searchProvenance: [...new Set(candidates.map((candidate) => candidate.video.searchQuery).filter((query): query is string => Boolean(query)))],
+        viewingSequence: buildViewingSequence(selected),
+        complementarySources: findComplementarySources(selected),
+        disagreements: findDisagreements(selected),
     };
 }
 
@@ -54,6 +60,80 @@ export function evaluateCandidate(brief: ResearchBrief, video: VideoCandidate): 
         coveredAreas,
         evidence,
     };
+}
+
+function selectDiverse(candidates: EvaluatedVideo[], maxSelections: number): EvaluatedVideo[] {
+    const remaining = [...candidates];
+    const selected: EvaluatedVideo[] = [];
+    const covered = new Set<string>();
+    const channels = new Set<string>();
+
+    while (remaining.length > 0 && selected.length < maxSelections) {
+        remaining.sort((left, right) => diversityScore(right, covered, channels, selected) - diversityScore(left, covered, channels, selected));
+        const next = remaining.shift();
+        if (!next) break;
+        selected.push(next);
+        next.coveredAreas.forEach((area) => covered.add(area));
+        channels.add(normalize(next.video.channel));
+    }
+    return selected;
+}
+
+function diversityScore(candidate: EvaluatedVideo, covered: Set<string>, channels: Set<string>, selected: EvaluatedVideo[]): number {
+    const newCoverage = candidate.coveredAreas.filter((area) => !covered.has(area)).length;
+    const sameChannelPenalty = channels.has(normalize(candidate.video.channel)) ? 0.12 : 0;
+    const redundancyPenalty = selected.some((item) => similarity(item.video, candidate.video) >= 0.75) ? 0.35 : 0;
+    return candidate.selectionScore + newCoverage * 0.15 - sameChannelPenalty - redundancyPenalty;
+}
+
+function similarity(left: VideoCandidate, right: VideoCandidate): number {
+    const leftTerms = new Set(terms(`${left.title} ${left.tags?.join(' ') ?? ''}`));
+    const rightTerms = new Set(terms(`${right.title} ${right.tags?.join(' ') ?? ''}`));
+    const intersection = [...leftTerms].filter((term) => rightTerms.has(term)).length;
+    const union = new Set([...leftTerms, ...rightTerms]).size;
+    return union === 0 ? 0 : intersection / union;
+}
+
+function buildViewingSequence(selected: EvaluatedVideo[]): string[] {
+    return [...selected]
+        .sort((left, right) => {
+            const coverage = right.coveredAreas.length - left.coveredAreas.length;
+            if (coverage !== 0) return coverage;
+            return left.video.durationSeconds - right.video.durationSeconds;
+        })
+        .map((candidate) => candidate.video.id);
+}
+
+function findComplementarySources(selected: EvaluatedVideo[]): Array<{ videoId: string; reason: string }> {
+    if (selected.length < 2) return [];
+    const primary = selected[0];
+    return selected.slice(1)
+        .filter((candidate) => candidate.coveredAreas.some((area) => !primary.coveredAreas.includes(area)) || candidate.video.channel !== primary.video.channel)
+        .map((candidate) => ({
+            videoId: candidate.video.id,
+            reason: candidate.video.channel !== primary.video.channel
+                ? `Adds an independent source perspective from ${candidate.video.channel}.`
+                : 'Adds coverage not fully represented by the primary selection.',
+        }));
+}
+
+function findDisagreements(selected: EvaluatedVideo[]): Array<{ topic: string; videoIds: string[]; description: string }> {
+    const disagreements: Array<{ topic: string; videoIds: string[]; description: string }> = [];
+    for (let index = 0; index < selected.length; index += 1) {
+        for (let other = index + 1; other < selected.length; other += 1) {
+            const left = selected[index];
+            const right = selected[other];
+            const shared = left.coveredAreas.filter((area) => right.coveredAreas.includes(area));
+            if (shared.length > 0 && normalize(left.video.title) !== normalize(right.video.title)) {
+                disagreements.push({
+                    topic: shared[0],
+                    videoIds: [left.video.id, right.video.id],
+                    description: 'Both sources address the same coverage area; compare their explanations rather than assuming they are interchangeable.',
+                });
+            }
+        }
+    }
+    return disagreements.slice(0, 10);
 }
 
 function buildEvidence(
@@ -111,18 +191,10 @@ function buildEvidence(
 }
 
 function validateBrief(brief: ResearchBrief): void {
-    if (!brief.topic.trim()) {
-        throw new Error('A research topic is required.');
-    }
-    if (!brief.audience.trim()) {
-        throw new Error('A target audience is required.');
-    }
-    if (!Number.isInteger(brief.maxSelections) || brief.maxSelections < 1) {
-        throw new Error('maxSelections must be a positive integer.');
-    }
-    if (Number.isNaN(Date.parse(brief.asOf))) {
-        throw new Error('asOf must be an ISO 8601 date.');
-    }
+    if (!brief.topic.trim()) throw new Error('A research topic is required.');
+    if (!brief.audience.trim()) throw new Error('A target audience is required.');
+    if (!Number.isInteger(brief.maxSelections) || brief.maxSelections < 1) throw new Error('maxSelections must be a positive integer.');
+    if (Number.isNaN(Date.parse(brief.asOf))) throw new Error('asOf must be an ISO 8601 date.');
 }
 
 function terms(text: string): string[] {
