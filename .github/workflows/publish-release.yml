@@ -17,7 +17,6 @@ jobs:
       id-token: write
     env:
       RELEASE_VERSION: ${{ inputs.version }}
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     steps:
       - name: Check out the immutable release tag
@@ -51,14 +50,8 @@ jobs:
             echo "published=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Publish npm package with token
-        if: ${{ steps.npm-package.outputs.published != 'true' && env.NPM_TOKEN != '' }}
-        run: npm publish --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ env.NPM_TOKEN }}
-
       - name: Publish npm package with trusted publishing
-        if: ${{ steps.npm-package.outputs.published != 'true' && env.NPM_TOKEN == '' }}
+        if: ${{ steps.npm-package.outputs.published != 'true' }}
         run: npm publish --provenance
 
       - name: Install MCP Registry publisher
