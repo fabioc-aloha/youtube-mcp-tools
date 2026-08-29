@@ -38,7 +38,7 @@ export function createServer(): McpServer {
     server.registerTool('youtube_analyze_video', { title: 'YouTube Video Analysis', description: 'Create a transparent metadata and transcript analysis with summary, concepts, and observable quality signals. Requires YOUTUBE_API_KEY.', inputSchema: { video: z.string().min(1) } }, async ({ video }) => json(await requireApiKey('youtube_analyze_video').analyzeVideo(YouTubeCore.extractVideoId(video))));
     server.registerTool('youtube_generate_flashcards', { title: 'YouTube Flashcards', description: 'Generate study flashcards from video concepts and key points. Requires YOUTUBE_API_KEY.', inputSchema: { video: z.string().min(1) } }, async ({ video }) => json(await requireApiKey('youtube_generate_flashcards').generateFlashcards(YouTubeCore.extractVideoId(video))));
     server.registerTool('youtube_quota_status', { title: 'YouTube API Quota Status', description: 'Report the current server process YouTube Data API quota usage.', inputSchema: {} }, async () => json(core.getQuotaStatus()));
-    server.registerTool('youtube_research_topic', { title: 'Curate YouTube Research', description: 'Search, inspect, caption-check, and transparently curate YouTube videos for a topic. Requires YOUTUBE_API_KEY. Returns selected videos, explicit selection evidence, exclusions, and a verification date.', inputSchema: { topic: z.string().min(1), audience: z.string().min(1), requiredCoverage: z.array(z.string().min(1)).min(1), maxSelections: z.number().int().min(1).max(12).default(6), candidateLimit: z.number().int().min(1).max(25).default(12), recencyTargetYears: z.number().min(0).max(20).optional() } }, async (input) => json(await researchTopic(input)));
+    server.registerTool('youtube_research_topic', { title: 'Curate YouTube Research', description: 'Search YouTube with multiple objective-driven queries, inspect candidates, caption-check, and transparently curate a diverse research collection. Requires YOUTUBE_API_KEY.', inputSchema: { topic: z.string().min(1), audience: z.string().min(1), requiredCoverage: z.array(z.string().min(1)).min(1), maxSelections: z.number().int().min(1).max(12).default(6), candidateLimit: z.number().int().min(1).max(25).default(12), recencyTargetYears: z.number().min(0).max(20).optional() } }, async (input) => json(await researchTopic(input)));
     server.registerTool('youtube_build_collateral_prompt', { title: 'Build Grounded Collateral Prompt', description: 'Build a host-model prompt for an article, summary, or study guide based only on a prior youtube_research_topic result and timestamp-cited claims.', inputSchema: collateralInputSchema }, async (input) => { const { collection, brief } = parseCollateralInput(input); return json(buildHostGenerationPrompt(collection, brief)); });
     server.registerTool('youtube_generate_collateral', { title: 'Generate Grounded Collateral', description: 'Use an explicitly configured direct provider to create transcript-grounded collateral. Set YOUTUBE_MCP_DIRECT_PROVIDER=openai-compatible and its API configuration first.', inputSchema: collateralInputSchema }, async (input) => { const provider = createDirectProviderFromEnvironment(); if (!provider) return errorResult('Direct generation is not configured. Use youtube_build_collateral_prompt for host-managed writing, or set YOUTUBE_MCP_DIRECT_PROVIDER=openai-compatible with YOUTUBE_MCP_DIRECT_API_KEY.'); const { collection, brief } = parseCollateralInput(input); return json(await generateWithDirectProvider(provider, collection, brief)); });
     server.registerTool('youtube_render_resource_page', { title: 'Render YouTube Resource Page', description: 'Render reviewed collateral and a research collection as a standalone, accessible HTML resource page.', inputSchema: { researchCollection: z.string().min(1), collateralDocument: z.string().min(1) } }, async ({ researchCollection, collateralDocument }) => text(renderResourcePage(JSON.parse(researchCollection) as ResearchCollection, JSON.parse(collateralDocument))));
@@ -48,13 +48,26 @@ export function createServer(): McpServer {
 
 const collateralInputSchema = { researchCollection: z.string().min(1), kind: z.enum(['article', 'study-guide', 'summary']), title: z.string().min(1), audience: z.string().min(1), learningObjectives: z.array(z.string().min(1)).default([]), claims: z.array(z.object({ claim: z.string().min(1), citations: z.array(z.object({ videoId: z.string().min(1), timestampSeconds: z.number().min(0), rationale: z.string().min(1) })).min(1) })).min(1) };
 
+function buildResearchQueries(topic: string, requiredCoverage: string[]): string[] {
+    const coverageQueries = requiredCoverage.slice(0, 3).map((area) => `${topic} ${area}`);
+    return [...new Set([topic, ...coverageQueries])].slice(0, 4);
+}
+
 async function researchTopic(input: { topic: string; audience: string; requiredCoverage: string[]; maxSelections: number; candidateLimit: number; recencyTargetYears?: number }): Promise<ResearchCollection> {
     const keyedCore = requireApiKey('youtube_research_topic');
-    const searchResults = await keyedCore.search(input.topic, input.candidateLimit);
-    const candidates = await Promise.all(searchResults.map(async (result): Promise<VideoCandidate> => {
-        const details = await keyedCore.getVideoDetails(result.id);
-        const transcript = await tryGetTranscript(result.id);
-        return { id: result.id, url: `https://youtu.be/${result.id}`, title: details.title || result.title, channel: details.channelTitle || result.channelTitle, publishedAt: details.publishedAt || result.publishedAt, durationSeconds: parseIsoDuration(details.duration), transcript: transcript?.fullText, tags: details.tags, viewCount: details.viewCount, likeCount: details.likeCount, searchQuery: input.topic };
+    const queries = buildResearchQueries(input.topic, input.requiredCoverage);
+    const perQueryLimit = Math.max(1, Math.ceil(input.candidateLimit / queries.length));
+    const batches = await Promise.all(queries.map(async (query) => keyedCore.search(query, perQueryLimit)));
+    const seen = new Set<string>();
+    const results = batches.flatMap((items) => items.map((item) => ({ item, query: queries.find((query) => batches.some((batch) => batch.includes(item) && query)) ?? input.topic }))).filter(({ item }) => {
+        if (seen.has(item.id)) return false;
+        seen.add(item.id);
+        return true;
+    });
+    const candidates = await Promise.all(results.slice(0, input.candidateLimit).map(async ({ item, query }): Promise<VideoCandidate> => {
+        const details = await keyedCore.getVideoDetails(item.id);
+        const transcript = await tryGetTranscript(item.id);
+        return { id: item.id, url: `https://youtu.be/${item.id}`, title: details.title || item.title, channel: details.channelTitle || item.channelTitle, publishedAt: details.publishedAt || item.publishedAt, durationSeconds: parseIsoDuration(details.duration), transcript: transcript?.fullText, tags: details.tags, viewCount: details.viewCount, likeCount: details.likeCount, searchQuery: query };
     }));
     return selectResearchCollection({ topic: input.topic, audience: input.audience, requiredCoverage: input.requiredCoverage, maxSelections: input.maxSelections, asOf: new Date().toISOString(), recencyTargetYears: input.recencyTargetYears }, candidates);
 }
