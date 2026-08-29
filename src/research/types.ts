@@ -9,6 +9,7 @@ export interface VideoCandidate {
     tags?: string[];
     viewCount?: number;
     likeCount?: number;
+    searchQuery?: string;
 }
 
 export interface ResearchBrief {
@@ -42,4 +43,8 @@ export interface ResearchCollection {
     excluded: EvaluatedVideo[];
     generatedAt: string;
     selectionMethod: string;
+    searchProvenance?: string[];
+    viewingSequence?: string[];
+    complementarySources?: Array<{ videoId: string; reason: string }>;
+    disagreements?: Array<{ topic: string; videoIds: string[]; description: string }>;
 }
