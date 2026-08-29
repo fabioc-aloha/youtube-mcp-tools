@@ -2,8 +2,8 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.fabioc-aloha/youtube-mcp-tools",
   "title": "YouTube MCP Tools",
-  "description": "Evidence-first YouTube research, transcript analysis, and collateral generation.",
-  "version": "2.0.1",
+  "description": "Evidence-first YouTube research, transcript analysis, segment intelligence, and collateral generation.",
+  "version": "2.1.0",
   "repository": {
     "url": "https://github.com/fabioc-aloha/youtube-mcp-tools",
     "source": "github",
@@ -14,7 +14,7 @@
     {
       "registryType": "npm",
       "identifier": "youtube-mcp-tools",
-      "version": "2.0.1",
+      "version": "2.1.0",
       "runtimeHint": "npx",
       "runtimeArguments": [
         {
