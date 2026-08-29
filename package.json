@@ -1,6 +1,6 @@
 {
   "name": "youtube-mcp-tools",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "mcpName": "io.github.fabioc-aloha/youtube-mcp-tools",
   "description": "Evidence-first YouTube research and collateral tools for MCP hosts and VS Code.",
   "type": "module",
