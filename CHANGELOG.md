@@ -6,7 +6,22 @@ The project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) con
 
 ## [Unreleased]
 
-Changes since the latest release are tracked here until the next version is published.
+### Added
+
+- Added MCP tool `youtube_find_relevant_segments` for transcript-backed timestamped segment discovery without a YouTube API key.
+- Added collection selection signals for source diversity, redundancy reduction, coverage optimization, complementary sources, search provenance, and recommended viewing order.
+- Added comparison opportunities for sources covering the same requested area without incorrectly labeling them as factual disagreements.
+
+### Improved
+
+- Candidate evaluation now preserves the originating search query.
+- Research collection selection uses inspectable weighted relevance, coverage, and evidence scores.
+- Collateral prompting can incorporate timestamped segment research.
+
+### Validation
+
+- Type checking and the full regression test suite pass on the current `main` commit.
+- Release packaging should be validated with `npm pack` and a clean local tarball installation before the next npm publication.
 
 ## [2.1.0] — 2026-08-28
 
