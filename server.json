@@ -3,62 +3,22 @@
   "name": "io.github.fabioc-aloha/youtube-mcp-tools",
   "title": "YouTube MCP Tools",
   "description": "Evidence-first YouTube research, transcript analysis, segment intelligence, and collateral generation.",
-  "version": "2.1.0",
-  "repository": {
-    "url": "https://github.com/fabioc-aloha/youtube-mcp-tools",
-    "source": "github",
-    "id": "1341186537"
-  },
+  "version": "2.2.0",
+  "repository": { "url": "https://github.com/fabioc-aloha/youtube-mcp-tools", "source": "github", "id": "1341186537" },
   "websiteUrl": "https://github.com/fabioc-aloha/youtube-mcp-tools#readme",
-  "packages": [
-    {
-      "registryType": "npm",
-      "identifier": "youtube-mcp-tools",
-      "version": "2.1.0",
-      "runtimeHint": "npx",
-      "runtimeArguments": [
-        {
-          "type": "positional",
-          "value": "-y"
-        }
-      ],
-      "transport": {
-        "type": "stdio"
-      },
-      "environmentVariables": [
-        {
-          "name": "YOUTUBE_API_KEY",
-          "description": "YouTube Data API v3 key. Required for search, metadata, analysis, flashcards, and live topic research; not required for transcript tools.",
-          "isRequired": false,
-          "isSecret": true,
-          "format": "string"
-        },
-        {
-          "name": "YOUTUBE_MCP_DIRECT_PROVIDER",
-          "description": "Optional direct-generation provider. Supported value: openai-compatible.",
-          "isRequired": false,
-          "format": "string"
-        },
-        {
-          "name": "YOUTUBE_MCP_DIRECT_API_KEY",
-          "description": "API key for the explicitly configured direct-generation provider.",
-          "isRequired": false,
-          "isSecret": true,
-          "format": "string"
-        },
-        {
-          "name": "YOUTUBE_MCP_DIRECT_MODEL",
-          "description": "Optional model name for the configured direct-generation provider.",
-          "isRequired": false,
-          "format": "string"
-        },
-        {
-          "name": "YOUTUBE_MCP_DIRECT_BASE_URL",
-          "description": "Optional OpenAI-compatible API base URL for the configured direct-generation provider.",
-          "isRequired": false,
-          "format": "string"
-        }
-      ]
-    }
-  ]
+  "packages": [{
+    "registryType": "npm",
+    "identifier": "youtube-mcp-tools",
+    "version": "2.2.0",
+    "runtimeHint": "npx",
+    "runtimeArguments": [{ "type": "positional", "value": "-y" }],
+    "transport": { "type": "stdio" },
+    "environmentVariables": [
+      { "name": "YOUTUBE_API_KEY", "description": "YouTube Data API v3 key. Required for search, metadata, analysis, flashcards, and live topic research; not required for transcript tools.", "isRequired": false, "isSecret": true, "format": "string" },
+      { "name": "YOUTUBE_MCP_DIRECT_PROVIDER", "description": "Optional direct-generation provider. Supported value: openai-compatible.", "isRequired": false, "format": "string" },
+      { "name": "YOUTUBE_MCP_DIRECT_API_KEY", "description": "API key for the explicitly configured direct-generation provider.", "isRequired": false, "isSecret": true, "format": "string" },
+      { "name": "YOUTUBE_MCP_DIRECT_MODEL", "description": "Optional model name for the configured direct-generation provider.", "isRequired": false, "format": "string" },
+      { "name": "YOUTUBE_MCP_DIRECT_BASE_URL", "description": "Optional OpenAI-compatible API base URL for the configured direct-generation provider.", "isRequired": false, "format": "string" }
+    ]
+  }]
 }
