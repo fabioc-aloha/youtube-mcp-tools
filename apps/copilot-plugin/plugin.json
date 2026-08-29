@@ -27,7 +27,7 @@
       "command": "npx",
       "args": [
         "-y",
-        "youtube-mcp-tools@2.0.1"
+        "youtube-mcp-tools@2.1.0"
       ],
       "env": {
         "YOUTUBE_API_KEY": "${env:YOUTUBE_API_KEY}",

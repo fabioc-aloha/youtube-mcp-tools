@@ -11,7 +11,7 @@ copilot plugin marketplace add fabioc-aloha/Alex_Skill_Mall
 copilot plugin install youtube-research@alex-mall
 ```
 
-The plugin launches `youtube-mcp-tools@2.0.1` with `npx`. Public transcript
+The plugin launches `youtube-mcp-tools@2.1.0` with `npx`. Public transcript
 tools require no credential. Set `YOUTUBE_API_KEY` in the host environment to
 enable YouTube search, metadata, analysis, flashcards, and live topic research.
 Direct collateral generation is opt-in and additionally uses the documented

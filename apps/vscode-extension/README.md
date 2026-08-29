@@ -58,7 +58,7 @@ Mode, Cursor, custom agents):
     "youtube": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "youtube-mcp-tools@2.0.1"]
+      "args": ["-y", "youtube-mcp-tools@2.1.0"]
     }
   }
 }
@@ -71,7 +71,7 @@ Claude Desktop (`claude_desktop_config.json`):
   "mcpServers": {
     "youtube": {
       "command": "npx",
-      "args": ["-y", "youtube-mcp-tools@2.0.1"]
+      "args": ["-y", "youtube-mcp-tools@2.1.0"]
     }
   }
 }
@@ -214,7 +214,7 @@ generation, and static resource-page rendering.
     "youtube": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "youtube-mcp-tools@2.0.1"],
+      "args": ["-y", "youtube-mcp-tools@2.1.0"],
       "env": { "YOUTUBE_API_KEY": "${env:YOUTUBE_API_KEY}" }
     }
   }
@@ -228,7 +228,7 @@ generation, and static resource-page rendering.
   "mcpServers": {
     "youtube": {
       "command": "npx",
-      "args": ["-y", "youtube-mcp-tools@2.0.1"],
+      "args": ["-y", "youtube-mcp-tools@2.1.0"],
       "env": { "YOUTUBE_API_KEY": "AIza..." }
     }
   }
@@ -238,7 +238,7 @@ generation, and static resource-page rendering.
 ### Standalone
 
 ```bash
-YOUTUBE_API_KEY=AIza... npx -y youtube-mcp-tools@2.0.1
+YOUTUBE_API_KEY=AIza... npx -y youtube-mcp-tools@2.1.0
 ```
 
 The server speaks JSON-RPC over stdio. Logs go to stderr only — stdout is

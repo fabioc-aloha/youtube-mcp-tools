@@ -1,84 +1,52 @@
-# Release Handoff
+# 2.1.0 Release and Local Installation Handoff
 
 ## Current state
 
 - The canonical repository is public:
   <https://github.com/fabioc-aloha/youtube-mcp-tools>.
-- The production server release is tagged `v2.0.1`.
-- The npm package `youtube-mcp-tools@2.0.1` is **not yet published**.
-- The MCP Registry record is **not yet published**.
-- The VS Code Marketplace currently has `0.5.1`; the prepared security and
-  reliability update is `0.5.3`.
-- The Alex ACT Mall currently contains `youtube-research@alex-mall` `1.0.0`.
-  Update it to `1.0.1` after npm publishes `2.0.1`.
+- The root package, MCP Registry manifest, and MCP handshake version are
+  aligned at `2.1.0`.
+- The local source installation has been completed with `npm ci` and `npm test`.
+  The built stdio executable is `dist/mcp-server/index.js`, and
+  `.vscode/mcp.json` runs that executable from the repository folder.
+- A local `.env` holds `YOUTUBE_API_KEY` for Data API features. It is ignored
+  by Git and must never be committed. Transcript tools remain usable without a
+  key.
+- npm publication was initiated on 2026-08-28. Verify public availability
+  outside the current corporate npm proxy, which may not surface the version
+  for up to seven days.
+- The MCP Registry record, `v2.1.0` tag, VS Code Marketplace companion
+  release, and Alex ACT Mall publication should each be independently
+  confirmed before announcing the release.
 
-## Blocking issue
-
-The npm package-owner account requires a 2FA reset. Do not attempt local npm
-publication until account access is restored. Do not commit or paste npm
-tokens, recovery codes, API keys, proxy credentials, or `.env` files.
-
-## Completed production work
-
-- Fixed classic and srv3 transcript timestamp normalization.
-- Moved regex transcript matching into a resource-limited worker with a 250 ms
-  timeout.
-- Restored no-key transcript commands in the VS Code companion.
-- Migrated legacy plaintext VS Code API-key settings into SecretStorage and
-  clears all legacy setting scopes.
-- Hardened the GitHub release workflow with idempotent npm publication and a
-  pinned, SHA-256-verified MCP Registry publisher binary.
-- Enabled GitHub secret scanning, push protection, and Dependabot security
-  updates.
-- Resolved all npm audit findings in both the root production dependencies and
-  the VS Code extension development dependency graph.
-
-## Verification completed
+## Local source installation
 
 ```powershell
-# Canonical server
+npm ci
+Copy-Item .env.example .env
+# Set YOUTUBE_API_KEY in .env when Data API tools are needed.
 npm test
-npm audit --omit=dev
-
-# VS Code companion
-Push-Location apps\vscode-extension
-npm test
-npm audit
-Pop-Location
 ```
 
-Both test suites and both audits passed with zero reported vulnerabilities.
+For VS Code, open this repository folder. Its `.vscode/mcp.json` registers a
+`youtube` stdio server using the local build. Other MCP hosts can run:
 
-## Release artifacts
+```json
+{
+  "type": "stdio",
+  "command": "node",
+  "args": ["C:\\absolute\\path\\to\\youtube-mcp-tools\\dist\\mcp-server\\index.js"]
+}
+```
 
-| Artifact | Version | Location / release route |
-| --- | --- | --- |
-| npm package | `2.0.1` | Publish through GitHub Actions after npm access is restored |
-| MCP Registry entry | `2.0.1` | Published by the same GitHub Actions workflow after npm succeeds |
-| VS Code companion | `0.5.3` | `apps\vscode-extension\youtube-mcp-tools-0.5.3.vsix`; upload manually in the Visual Studio Marketplace publisher portal |
-| Alex ACT Mall plugin | `1.0.1` pending | Update after npm package publication |
+## Remaining release checks
 
-## Resume steps
-
-1. Complete npm 2FA recovery and sign in as a package owner.
-2. Configure npm trusted publishing for:
-   - GitHub owner: `fabioc-aloha`
-   - Repository: `youtube-mcp-tools`
-   - Workflow: `.github/workflows/publish-release.yml`
-3. Run **Publish release** in GitHub Actions with version `2.0.1`.
-4. Verify:
-   - <https://www.npmjs.com/package/youtube-mcp-tools>
-   - `io.github.fabioc-aloha/youtube-mcp-tools` version `2.0.1` in the MCP
-     Registry.
-5. Upload the `0.5.3` VSIX through the Marketplace publisher portal.
-6. Update the Mall plugin from `apps\copilot-plugin`:
-
-   ```powershell
-   Push-Location C:\Development\Alex_ACT_Plugin_Mall
-   npm run vendor -- --source C:\Development\youtube-mcp-tools\apps\copilot-plugin --category media-graphics --repository https://github.com/fabioc-aloha/youtube-mcp-tools --ref v2.0.1 --submitted-by @fabioc-aloha --evidence "Canonical YouTube MCP 2.0.1 release with validated npm, MCP Registry, and VS Code companion distribution." --replace --apply
-   npm run submit:validate -- --plugin media-graphics/youtube-research
-   npm run maintain -- --curated
-   ```
-
-7. Review, commit, and push the Mall changes. Confirm the plugin launches
-   `youtube-mcp-tools@2.0.1`.
+1. Confirm `youtube-mcp-tools@2.1.0` is publicly available from an npm
+   registry that is not subject to the current proxy delay.
+2. Create and verify the immutable `v2.1.0` tag if it is still absent.
+3. Confirm `io.github.fabioc-aloha/youtube-mcp-tools` version `2.1.0` appears
+   in the MCP Registry.
+4. Publish the VS Code companion version `0.5.3` separately through the
+   Visual Studio Marketplace publisher portal.
+5. Vendor `apps/copilot-plugin` into Alex ACT Mall and verify it launches
+   `youtube-mcp-tools@2.1.0`.

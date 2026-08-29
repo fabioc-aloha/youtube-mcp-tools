@@ -52,22 +52,25 @@ the same modern host integration as the npm distribution.
 ## Development
 
 ```powershell
-npm install
+npm ci
 npm test
 ```
 
 ## Install in MCP hosts
 
-### Local build
+### Local source installation
 
-The 2.0 source release is available now. Install dependencies and build it:
+Build and run the server directly from a local checkout:
 
 ```powershell
-npm install
-npm run build
+npm ci
+Copy-Item .env.example .env
+# Set YOUTUBE_API_KEY in .env when you need YouTube Data API features.
+npm test
 ```
 
-Then add this server entry to an MCP host:
+`npm test` builds the MCP executable at `dist/mcp-server/index.js`. Then add
+this server entry to an MCP host:
 
 ```json
 {
@@ -81,22 +84,23 @@ Then add this server entry to an MCP host:
 }
 ```
 
-This is compatible with VS Code's workspace `.vscode/mcp.json` and user
-configuration. Transcript tools work with no configuration. To use search,
-metadata, analysis, flashcards, or live topic research, add `YOUTUBE_API_KEY`
-through your host's secret or environment-variable facility; never commit a
-key.
+The checkout includes the equivalent workspace configuration in
+`.vscode/mcp.json`; open the repository folder in VS Code to use it. Transcript
+tools work with no configuration. To use search, metadata, analysis,
+flashcards, or live topic research, add `YOUTUBE_API_KEY` through your host's
+secret or environment-variable facility. `.env` is ignored by Git; never
+commit a key.
 
 ### npm package
 
-The npm publication of `youtube-mcp-tools@2.0.1` is pending. After it is
-published, replace the local `node` command above with:
+Use the published `youtube-mcp-tools@2.1.0` package without maintaining a
+checkout:
 
 ```json
 {
   "type": "stdio",
   "command": "npx",
-  "args": ["-y", "youtube-mcp-tools@2.0.1"]
+  "args": ["-y", "youtube-mcp-tools@2.1.0"]
 }
 ```
 
@@ -135,8 +139,7 @@ hosts that support prompts.
 
 ### GitHub Copilot CLI through Alex ACT Plugin Mall
 
-After the npm package is published, GitHub Copilot CLI users can install the
-optional Mall plugin:
+GitHub Copilot CLI users can install the optional Mall plugin:
 
 ```bash
 copilot plugin marketplace add fabioc-aloha/Alex_Skill_Mall
@@ -149,15 +152,12 @@ Code, and other MCP hosts should use the standard installation above.
 
 ## Marketplace readiness
 
-`server.json` is the official MCP Registry manifest. After publishing the npm
-package, publish this manifest with the official
-[MCP Registry publisher](https://modelcontextprotocol.io/registry/quickstart).
-The package contains the matching `mcpName` ownership marker required by the
-registry.
+`server.json` is the official MCP Registry manifest. The package contains the
+matching `mcpName` ownership marker required by the registry.
 
 The manual GitHub Actions workflow at
 `.github/workflows/publish-release.yml` publishes a pushed `v<version>` tag in
-order: npm package, then MCP Registry manifest. Configure either npm trusted
-publishing or an `NPM_TOKEN` repository secret; the MCP Registry step uses
-GitHub OIDC and needs no dedicated secret. Publish the VS Code companion VSIX
-separately through the Visual Studio Marketplace publisher portal.
+order: npm package, then MCP Registry manifest. It uses npm trusted publishing
+and GitHub OIDC for the Registry; no repository secrets are required. Publish
+the VS Code companion VSIX separately through the Visual Studio Marketplace
+publisher portal.
