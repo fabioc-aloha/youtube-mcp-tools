@@ -6,22 +6,26 @@ The project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) con
 
 ## [Unreleased]
 
+- Release verification for 2.2.0 remains pending public npm/MCP Registry propagation and a live API-backed smoke test.
+
+## [2.2.0] — unreleased
+
 ### Added
 
-- Added MCP tool `youtube_find_relevant_segments` for transcript-backed timestamped segment discovery without a YouTube API key.
-- Added collection selection signals for source diversity, redundancy reduction, coverage optimization, complementary sources, search provenance, and recommended viewing order.
-- Added comparison opportunities for sources covering the same requested area without incorrectly labeling them as factual disagreements.
+- Exposed `youtube_find_relevant_segments` as a first-class MCP tool; transcript-backed segment research does not require a YouTube Data API key.
+- Added objective-driven multi-query discovery using the research topic plus requested coverage areas.
+- Preserved search-query provenance on discovered candidates and collections.
+- Added diversity-aware collection selection with source/channel diversity, redundancy reduction, and coverage optimization.
+- Added recommended viewing sequences and complementary-source explanations.
+- Added conservative comparison opportunities instead of falsely labeling shared coverage as factual disagreement.
+- Improved transcript segment ranking with phrase weighting and overlap suppression.
+- Added release-oriented CI coverage for the new research behaviors.
 
-### Improved
+### Design
 
-- Candidate evaluation now preserves the originating search query.
-- Research collection selection uses inspectable weighted relevance, coverage, and evidence scores.
-- Collateral prompting can incorporate timestamped segment research.
-
-### Validation
-
-- Type checking and the full regression test suite pass on the current `main` commit.
-- Release packaging should be validated with `npm pack` and a clean local tarball installation before the next npm publication.
+- Research selection remains deterministic and inspectable: scores are derived from observable relevance, coverage, transcript availability, source identity, duration, and recency signals.
+- The server distinguishes API-key-free transcript intelligence from API-key-dependent YouTube Data API discovery and metadata operations.
+- The implementation avoids claiming semantic disagreement unless the available evidence can support it; current cross-source comparison signals are deliberately conservative.
 
 ## [2.1.0] — 2026-08-28
 
@@ -42,6 +46,7 @@ The project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) con
 
 See the release history and repository commits for the complete 2.0.1 history.
 
-[Unreleased]: https://github.com/fabioc-aloha/youtube-mcp-tools/compare/v2.1.0...HEAD
+[Unreleased]: https://github.com/fabioc-aloha/youtube-mcp-tools/compare/v2.2.0...HEAD
+[2.2.0]: https://github.com/fabioc-aloha/youtube-mcp-tools/releases/tag/v2.2.0
 [2.1.0]: https://github.com/fabioc-aloha/youtube-mcp-tools/releases/tag/v2.1.0
 [2.0.1]: https://github.com/fabioc-aloha/youtube-mcp-tools/releases/tag/v2.0.1
