@@ -2,8 +2,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 
 import { findRelevantSegments, type SegmentResearchBrief } from '../research/segments.js';
-import type { VideoTranscript } from '../youtube/youtube-core.js';
-import type { YouTubeCore } from '../youtube/youtube-core.js';
+import { type VideoTranscript, YouTubeCore } from '../youtube/youtube-core.js';
 
 export function registerSegmentTools(server: McpServer, core: YouTubeCore): void {
     server.registerTool(
@@ -21,7 +20,7 @@ export function registerSegmentTools(server: McpServer, core: YouTubeCore): void
             },
         },
         async ({ video, objective, topics, maxSegments, minDurationSeconds, maxDurationSeconds }) => {
-            const videoId = core.constructor['extractVideoId'](video);
+            const videoId = YouTubeCore.extractVideoId(video);
             const transcript = await core.getTranscript(videoId) as VideoTranscript;
             const brief: SegmentResearchBrief = {
                 videoId,
