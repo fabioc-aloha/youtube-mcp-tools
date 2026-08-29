@@ -28,10 +28,10 @@ export function selectResearchCollection(
         excluded: evaluated.filter((candidate) => !selectedIds.has(candidate.video.id)).sort((a, b) => b.selectionScore - a.selectionScore),
         generatedAt: brief.asOf,
         selectionMethod: 'Explicit relevance, coverage, transcript availability, duration, source identity, recency, source diversity, redundancy reduction, and coverage optimization. Selection scores are weighted, inspectable totals rather than opaque quality ratings.',
-        searchProvenance: [...new Set(candidates.map((candidate) => candidate.video.searchQuery).filter((query): query is string => Boolean(query)))],
+        searchProvenance: [...new Set(candidates.map((candidate) => candidate.searchQuery).filter((query): query is string => Boolean(query)))],
         viewingSequence: buildViewingSequence(selected),
         complementarySources: findComplementarySources(selected),
-        disagreements: findDisagreements(selected),
+        disagreements: findComparisonOpportunities(selected),
     };
 }
 
@@ -104,19 +104,19 @@ function findComplementarySources(selected: EvaluatedVideo[]): Array<{ videoId: 
     }));
 }
 
-function findDisagreements(selected: EvaluatedVideo[]): Array<{ topic: string; videoIds: string[]; description: string }> {
-    const disagreements: Array<{ topic: string; videoIds: string[]; description: string }> = [];
+function findComparisonOpportunities(selected: EvaluatedVideo[]): Array<{ topic: string; videoIds: string[]; description: string }> {
+    const opportunities: Array<{ topic: string; videoIds: string[]; description: string }> = [];
     for (let index = 0; index < selected.length; index += 1) {
         for (let other = index + 1; other < selected.length; other += 1) {
             const left = selected[index];
             const right = selected[other];
             const shared = left.coveredAreas.filter((area) => right.coveredAreas.includes(area));
             if (shared.length > 0 && normalize(left.video.title) !== normalize(right.video.title)) {
-                disagreements.push({ topic: shared[0], videoIds: [left.video.id, right.video.id], description: 'Both sources address the same coverage area; compare their explanations rather than assuming they are interchangeable.' });
+                opportunities.push({ topic: shared[0], videoIds: [left.video.id, right.video.id], description: 'Both sources address this coverage area; compare their explanations and evidence rather than assuming they are interchangeable.' });
             }
         }
     }
-    return disagreements.slice(0, 10);
+    return opportunities.slice(0, 10);
 }
 
 function buildEvidence(brief: ResearchBrief, video: VideoCandidate, matchedTopicTerms: string[], coveredAreas: string[]): EvidenceItem[] {
