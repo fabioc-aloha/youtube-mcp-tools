@@ -26,14 +26,9 @@ const core = new YouTubeCore(apiKey, log);
 export function createServer(): McpServer {
     const server = new McpServer({ name: SERVER_NAME, version: SERVER_VERSION });
     registerSegmentTools(server, core);
-
     server.registerTool('youtube_search', { title: 'YouTube Search', description: 'Search YouTube for public videos. Requires YOUTUBE_API_KEY.', inputSchema: { query: z.string().min(1).max(512), maxResults: z.number().int().min(1).max(50).default(10) } }, async ({ query, maxResults }) => json(await requireApiKey('youtube_search').search(query, maxResults)));
     server.registerTool('youtube_get_video_details', { title: 'YouTube Video Details', description: 'Get public metadata, duration, tags, caption availability, and engagement counts. Requires YOUTUBE_API_KEY.', inputSchema: { video: z.string().min(1) } }, async ({ video }) => json(await requireApiKey('youtube_get_video_details').getVideoDetails(YouTubeCore.extractVideoId(video))));
-    server.registerTool('youtube_get_transcript', { title: 'YouTube Transcript', description: 'Get a public caption transcript with timestamp deep links. Does not require a YouTube API key.', inputSchema: { video: z.string().min(1), format: z.enum(['markdown', 'plain', 'segments']).default('markdown') } }, async ({ video, format }) => {
-        const videoId = YouTubeCore.extractVideoId(video);
-        if (format === 'segments') return json(await core.getTranscript(videoId));
-        return text(format === 'markdown' ? await core.getMarkdownTranscript(videoId) : await core.getFormattedTranscript(videoId));
-    });
+    server.registerTool('youtube_get_transcript', { title: 'YouTube Transcript', description: 'Get a public caption transcript with timestamp deep links. Does not require a YouTube API key.', inputSchema: { video: z.string().min(1), format: z.enum(['markdown', 'plain', 'segments']).default('markdown') } }, async ({ video, format }) => { const videoId = YouTubeCore.extractVideoId(video); if (format === 'segments') return json(await core.getTranscript(videoId)); return text(format === 'markdown' ? await core.getMarkdownTranscript(videoId) : await core.getFormattedTranscript(videoId)); });
     server.registerTool('youtube_search_transcript', { title: 'YouTube Transcript Search', description: 'Find timestamped mentions inside a public caption transcript. Does not require a YouTube API key.', inputSchema: { video: z.string().min(1), query: z.string().min(1).max(512), regex: z.boolean().default(false), contextSeconds: z.number().int().min(0).max(120).default(10), maxMatches: z.number().int().min(1).max(200).default(25) } }, async ({ video, query, regex, contextSeconds, maxMatches }) => json({ videoId: YouTubeCore.extractVideoId(video), query, results: await core.searchTranscript(YouTubeCore.extractVideoId(video), query, { regex, contextSeconds, maxMatches }) }));
     server.registerTool('youtube_analyze_video', { title: 'YouTube Video Analysis', description: 'Create a transparent metadata and transcript analysis with summary, concepts, and observable quality signals. Requires YOUTUBE_API_KEY.', inputSchema: { video: z.string().min(1) } }, async ({ video }) => json(await requireApiKey('youtube_analyze_video').analyzeVideo(YouTubeCore.extractVideoId(video))));
     server.registerTool('youtube_generate_flashcards', { title: 'YouTube Flashcards', description: 'Generate study flashcards from video concepts and key points. Requires YOUTUBE_API_KEY.', inputSchema: { video: z.string().min(1) } }, async ({ video }) => json(await requireApiKey('youtube_generate_flashcards').generateFlashcards(YouTubeCore.extractVideoId(video))));
@@ -48,7 +43,7 @@ export function createServer(): McpServer {
 
 const collateralInputSchema = { researchCollection: z.string().min(1), kind: z.enum(['article', 'study-guide', 'summary']), title: z.string().min(1), audience: z.string().min(1), learningObjectives: z.array(z.string().min(1)).default([]), claims: z.array(z.object({ claim: z.string().min(1), citations: z.array(z.object({ videoId: z.string().min(1), timestampSeconds: z.number().min(0), rationale: z.string().min(1) })).min(1) })).min(1) };
 
-function buildResearchQueries(topic: string, requiredCoverage: string[]): string[] {
+export function buildResearchQueries(topic: string, requiredCoverage: string[]): string[] {
     const coverageQueries = requiredCoverage.slice(0, 3).map((area) => `${topic} ${area}`);
     return [...new Set([topic, ...coverageQueries])].slice(0, 4);
 }
@@ -57,14 +52,17 @@ async function researchTopic(input: { topic: string; audience: string; requiredC
     const keyedCore = requireApiKey('youtube_research_topic');
     const queries = buildResearchQueries(input.topic, input.requiredCoverage);
     const perQueryLimit = Math.max(1, Math.ceil(input.candidateLimit / queries.length));
-    const batches = await Promise.all(queries.map(async (query) => keyedCore.search(query, perQueryLimit)));
+    const results: Array<{ item: { id: string; title: string; channelTitle: string; publishedAt: string }; query: string }> = [];
     const seen = new Set<string>();
-    const results = batches.flatMap((items) => items.map((item) => ({ item, query: queries.find((query) => batches.some((batch) => batch.includes(item) && query)) ?? input.topic }))).filter(({ item }) => {
-        if (seen.has(item.id)) return false;
-        seen.add(item.id);
-        return true;
-    });
-    const candidates = await Promise.all(results.slice(0, input.candidateLimit).map(async ({ item, query }): Promise<VideoCandidate> => {
+    for (const query of queries) {
+        const batch = await keyedCore.search(query, perQueryLimit);
+        for (const item of batch) {
+            if (seen.has(item.id) || results.length >= input.candidateLimit) continue;
+            seen.add(item.id);
+            results.push({ item, query });
+        }
+    }
+    const candidates = await Promise.all(results.map(async ({ item, query }): Promise<VideoCandidate> => {
         const details = await keyedCore.getVideoDetails(item.id);
         const transcript = await tryGetTranscript(item.id);
         return { id: item.id, url: `https://youtu.be/${item.id}`, title: details.title || item.title, channel: details.channelTitle || item.channelTitle, publishedAt: details.publishedAt || item.publishedAt, durationSeconds: parseIsoDuration(details.duration), transcript: transcript?.fullText, tags: details.tags, viewCount: details.viewCount, likeCount: details.likeCount, searchQuery: query };
