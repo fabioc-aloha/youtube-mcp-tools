@@ -5,5 +5,6 @@ export * from './config/local-env.js';
 export * from './html/resource-page.js';
 export * from './profiles/defensible-decision.js';
 export * from './research/select.js';
+export * from './research/segments.js';
 export * from './research/types.js';
 export * from './youtube/youtube-core.js';
