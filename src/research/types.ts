@@ -46,5 +46,5 @@ export interface ResearchCollection {
     searchProvenance?: string[];
     viewingSequence?: string[];
     complementarySources?: Array<{ videoId: string; reason: string }>;
-    disagreements?: Array<{ topic: string; videoIds: string[]; description: string }>;
+    comparisonOpportunities?: Array<{ topic: string; videoIds: string[]; description: string }>;
 }
