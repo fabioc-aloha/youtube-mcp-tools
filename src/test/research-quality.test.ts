@@ -67,12 +67,17 @@ test('expert selection builds a multi-source collection around distinct coverage
     assert.ok(collection.selected.some((item) => item.video.id === 'assembly'));
     assert.ok(collection.selected.some((item) => item.video.id === 'bake'));
     assert.ok(collection.excluded.some((item) => item.video.id === 'junk'));
-    assert.ok(collection.comparisonOpportunities?.length);
+    assert.ok(collection.complementarySources?.length);
 });
 
-test('research discovery expands every requested coverage area', async () => {
-    // The exported query builder is exercised indirectly by asserting the research contract
-    // has one distinct phrase per requested area in the test fixture itself.
+test('comparison opportunities require genuinely shared coverage', () => {
+    const left = video('left', 'Lasagna béchamel technique', 'Make a smooth béchamel and balance it with cheese.', 'Kitchen A');
+    const right = video('right', 'Lasagna layering with béchamel', 'Layer pasta, béchamel and cheese evenly for consistent assembly.', 'Kitchen B');
+    const collection = selectResearchCollection({ ...lasagnaBrief, maxSelections: 2 }, [left, right]);
+    assert.ok(collection.comparisonOpportunities?.some((item) => item.videoIds.includes('left') && item.videoIds.includes('right')));
+});
+
+test('research discovery expands every requested coverage area', () => {
     const queries = [lasagnaBrief.topic, ...lasagnaBrief.requiredCoverage.map((area) => `${lasagnaBrief.topic} ${area}`)];
     assert.equal(new Set(queries).size, lasagnaBrief.requiredCoverage.length + 1);
 });
