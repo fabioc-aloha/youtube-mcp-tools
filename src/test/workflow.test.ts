@@ -79,7 +79,7 @@ test('selects transcript-backed candidates and explains exclusions', () => {
     assert.equal(collection.excluded.length, 1);
     assert.equal(collection.excluded[0]?.video.id, 'no-transcript');
     assert.match(collection.selected[0]?.evidence[0]?.detail ?? '', /Transcript is available/);
-    assert.match(collection.selectionMethod, /inspectable totals/);
+    assert.match(collection.selectionMethod, /Evidence-gated relevance/);
 });
 
 test('finds timestamped transcript segments relevant to a research objective', () => {
@@ -102,7 +102,7 @@ test('finds timestamped transcript segments relevant to a research objective', (
     assert.equal(segments[0]?.startSeconds, 10);
     assert.equal(segments[0]?.endSeconds, 22);
     assert.match(segments[0]?.url ?? '', /t=10/);
-    assert.match(segments[0]?.rationale ?? '', /requested topic terms/);
+    assert.match(segments[0]?.rationale ?? '', /meaningful research topics/);
 });
 
 test('builds a citation-constrained host prompt', () => {
