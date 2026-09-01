@@ -20,8 +20,5 @@
   "chat.instructionsFilesLocations": {
     ".github/instructions": true
   },
-  "chat.permissions.default": "autoApprove",
-  "markdown.styles": [
-    ".vscode/markdown-light.css"
-  ]
+  "chat.permissions.default": "autoApprove"
 }
